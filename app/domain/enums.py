@@ -1,4 +1,3 @@
-# app/domain/enums.py
 import enum
 
 class CanalPedido(str, enum.Enum):
