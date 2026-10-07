@@ -1,0 +1,19 @@
+# Framework web e Servidor
+fastapi>=0.110.0
+uvicorn[standard]>=0.28.0
+
+# ORM e Banco de Dados
+sqlalchemy>=2.0.28
+
+# Seguranca, Hashing de Senhas e JWT
+passlib[bcrypt]>=1.7.4
+bcrypt>=4.0.1
+python-jose[cryptography]>=3.3.0
+
+# Validacao de Schemas e email
+pydantic[email]>=2.6.4
+email-validator>=2.1.1
+
+# Configuracoes e Variaveis de Ambiente
+python-dotenv>=1.0.1
+python-multipart>=0.0.9

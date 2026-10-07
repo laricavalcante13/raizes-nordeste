@@ -7,12 +7,13 @@ from app.domain.enums import CanalPedido, StatusPedido, PerfilUsuario
 class Usuario(Base):
     __tablename__ = "usuarios"
 
-    id = Column(Integer, primary_field=True, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True, index=True)
     nome = Column(String, nullable=False)
-    email = Column(String, unique=True, index=True, nullable=False)
+    email = Column(String, unique=True, 
+                   index=True, nullable=False)
     senha_hash = Column(String, nullable=False)
     perfil = Column(Enum(PerfilUsuario), default=PerfilUsuario.CLIENTE)
-    consentimento_lgpd = Column(Boolean, default=True) # Registro de consentimento (LGPD)
+    consentimento_lgpd = Column(Boolean, default=True)
     criado_em = Column(DateTime, default=datetime.utcnow)
 
 class Unidade(Base):
