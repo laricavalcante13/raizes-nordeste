@@ -8,8 +8,10 @@ from app.domain.enums import PerfilUsuario
 from app.schemas.usuario import (
     ColaboradorCreateSchema,
     UsuarioUpdateSchema,
-    UsuarioResponseSchema
+    UsuarioResponseSchema,
+    ConsentimentoResponseSchema
 )
+
 from app.core.security import gerar_hash_senha
 from app.api.deps import get_current_user, exigir_perfil
 
@@ -154,6 +156,101 @@ def atualizar_usuario(
 
     return usuario
 
+# -----------------------------------------------------------------------------
+# UC05: Consultar e Revogar Consentimento LGPD
+# -----------------------------------------------------------------------------
+@router.get(
+    "/{usuario_id}/consentimento-lgpd",
+    response_model=ConsentimentoResponseSchema,
+    summary="UC05: Consultar status do consentimento LGPD"
+)
+def consultar_consentimento_lgpd(
+    usuario_id: int,
+    db: Session = Depends(get_db),
+    usuario_atual: Usuario = Depends(get_current_user)
+):
+    if usuario_atual.id != usuario_id and usuario_atual.perfil not in [PerfilUsuario.GERENTE, PerfilUsuario.ADMIN]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Acesso negado para consultar termos deste usuário."
+        )
+
+    usuario = db.query(Usuario).filter(Usuario.id == usuario_id).first()
+    if not usuario:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado.")
+
+    return ConsentimentoResponseSchema(
+        usuario_id=usuario.id,
+        consentimento_lgpd=usuario.consentimento_lgpd,
+        mensagem="Consentimento ativo." if usuario.consentimento_lgpd else "Consentimento revogado pelo usuário."
+    )
+
+
+@router.patch(
+    "/{usuario_id}/revogar-consentimento-lgpd",
+    response_model=ConsentimentoResponseSchema,
+    summary="UC05: Revogar consentimento LGPD"
+)
+def revogar_consentimento_lgpd(
+    usuario_id: int,
+    db: Session = Depends(get_db),
+    usuario_atual: Usuario = Depends(get_current_user)
+):
+    if usuario_atual.id != usuario_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Apenas o próprio titular dos dados pode revogar seu consentimento."
+        )
+
+    usuario = db.query(Usuario).filter(Usuario.id == usuario_id).first()
+    if not usuario:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado.")
+
+    usuario.consentimento_lgpd = False
+    db.commit()
+
+    return ConsentimentoResponseSchema(
+        usuario_id=usuario.id,
+        consentimento_lgpd=False,
+        mensagem="Consentimento revogado com sucesso. Seus dados não serão utilizados para novas operações."
+    )
+
+
+# -----------------------------------------------------------------------------
+# UC06: Solicitar Exclusão / Anonimização de Dados (LGPD)
+# -----------------------------------------------------------------------------
+@router.post(
+    "/{usuario_id}/solicitar-exclusao-lgpd",
+    status_code=status.HTTP_200_OK,
+    summary="UC06: Solicitar Exclusão / Anonimização de Dados Pessoais"
+)
+def solicitar_exclusao_dados_lgpd(
+    usuario_id: int,
+    db: Session = Depends(get_db),
+    usuario_atual: Usuario = Depends(get_current_user)
+):
+    if usuario_atual.id != usuario_id and usuario_atual.perfil not in [PerfilUsuario.GERENTE, PerfilUsuario.ADMIN]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Você não tem permissão para solicitar a exclusão destes dados."
+        )
+
+    usuario = db.query(Usuario).filter(Usuario.id == usuario_id).first()
+    if not usuario:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado.")
+
+    # Anonimização em conformidade com a LGPD (mantém o registro para integridade relacional, mas limpa PII)
+    usuario.nome = f"Usuario_Anonimizado_{usuario.id}"
+    usuario.email = f"anonimo_{usuario.id}@lgpd.removido"
+    usuario.senha_hash = "CONTA_EXCLUIDA_LGPD"
+    usuario.consentimento_lgpd = False
+
+    db.commit()
+
+    return {
+        "status": "sucesso",
+        "mensagem": "Dados pessoais do usuário foram devidamente anonimizados em conformidade com a LGPD."
+    }
 
 # -----------------------------------------------------------------------------
 # DELETE (UC06): Excluir / Remover Usuário (LGPD ou Gestão Admin)

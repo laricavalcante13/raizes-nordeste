@@ -24,6 +24,12 @@ class UsuarioUpdateSchema(BaseModel):
     senha: str | None = Field(default=None, min_length=6, example="NovaSenha@123")
     perfil: PerfilUsuario | None = Field(default=None, example=PerfilUsuario.GERENTE)
 
+# Consentimento LGPD
+class ConsentimentoResponseSchema(BaseModel):
+    usuario_id: int
+    consentimento_lgpd: bool
+    mensagem: str
+
 # Resposta padrão para listagem e consulta
 class UsuarioResponseSchema(BaseModel):
     id: int
