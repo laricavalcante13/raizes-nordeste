@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 
 from app.infrastructure.database import get_db
@@ -32,16 +32,20 @@ def obter_ou_criar_conta_fidelidade(usuario_id: int, db: Session) -> ContaFideli
     summary="Consultar saldo de pontos e extrato do cliente logado"
 )
 def consultar_saldo_fidelidade(
+    page: int = Query(default=1, ge=1, description="Número da página do histórico"),
+    limit: int = Query(default=10, ge=1, le=100, description="Itens do histórico por página"),
     db: Session = Depends(get_db),
     usuario_atual: Usuario = Depends(get_current_user)
 ):
     conta = obter_ou_criar_conta_fidelidade(usuario_atual.id, db)
     
+    offset = (page - 1) * limit
     historico = (
         db.query(HistoricoFidelidade)
         .filter(HistoricoFidelidade.conta_id == conta.id)
         .order_by(HistoricoFidelidade.criado_em.desc())
-        .limit(20)
+        .offset(offset)
+        .limit(limit)
         .all()
     )
 
