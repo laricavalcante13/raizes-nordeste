@@ -7,9 +7,9 @@ from fastapi.responses import JSONResponse
 from app.api.v1 import pedidos, pagamentos, usuarios, auth, estoque, produtos, unidades, fidelidade
 
 app = FastAPI(
-    title="API Rede Raízes do Nordeste",
+    title="API Restaurantes Raízes do Nordeste",
     version="1.0.0",
-    description="API para gestão das unidades Raízes do Nordeste Restaurantes"
+    description="API para gestão dos restaurantes Raízes do Nordeste"
 )
 
 app.include_router(auth.router, prefix="/api/v1")

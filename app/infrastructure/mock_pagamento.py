@@ -3,8 +3,6 @@ import random
 class ServicoPagamentoMock:
     @staticmethod
     def processar_pagamento(pedido_id: int, valor: float, forma_pagamento: str) -> dict:
-        # Simula aprovação de pagamento no mock (retorna status e payload)
-        # Para fins de teste, formas contendo "FALHA" resultam em recusa
         se_aprovado = "FALHA" not in forma_pagamento.upper()
         
         return {

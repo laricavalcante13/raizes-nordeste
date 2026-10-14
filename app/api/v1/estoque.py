@@ -10,7 +10,7 @@ from app.schemas.estoque import AtualizarEstoqueSchema, EstoqueResponseSchema
 
 router = APIRouter(prefix="/estoque", tags=["Controle de Estoque"])
 
-@router.get("/unidades/{unidade_id}", response_model=List[EstoqueResponseSchema], summary="UC10: Consultar saldo de estoque por unidade")
+@router.get("/unidades/{unidade_id}", response_model=List[EstoqueResponseSchema], summary="Consultar saldo de estoque por unidade")
 def consultar_estoque_unidade(
     unidade_id: int,
     page: int = Query(default=1, ge=1, description="Número da página"),
@@ -34,7 +34,7 @@ def consultar_estoque_unidade(
     )
 
    
-@router.put("/unidades/{unidade_id}/produtos/{produto_id}", response_model=EstoqueResponseSchema, summary="UC10: Entradas/Saídas de estoque por produto e unidade")
+@router.put("/unidades/{unidade_id}/produtos/{produto_id}", response_model=EstoqueResponseSchema, summary="Entradas e Saídas de estoque por produto e unidade")
 def atualizar_estoque_unidade(
     unidade_id: int,
     produto_id: int,

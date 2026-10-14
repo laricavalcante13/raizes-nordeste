@@ -3,7 +3,6 @@ from typing import Optional
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 
-# Constantes exportadas para o deps.py
 SECRET_KEY = "LOEMIPSUMBDJAJKAKVSDV_646DFBSF64_SDNOBOT562"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 480  # 8 horas de validade

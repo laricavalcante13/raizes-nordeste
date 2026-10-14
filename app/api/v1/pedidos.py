@@ -38,7 +38,7 @@ def obter_ou_criar_conta_fidelidade(usuario_id: int, db: Session) -> ContaFideli
 
 
 # -----------------------------------------------------------------------------
-# UC13 & UC14: Criar Pedido com validação de estoque e cálculo de subtotal
+# UC13 / UC14: Criar Pedido com validação de estoque e cálculo de subtotal
 # -----------------------------------------------------------------------------
 @router.post("", response_model=PedidoResponseSchema, status_code=status.HTTP_201_CREATED, summary="UC13 & UC14: Criar Pedido Multicanal")
 def criar_pedido(
