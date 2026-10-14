@@ -6,7 +6,7 @@ from app.core.security import gerar_hash_senha
 @pytest.fixture
 def dados_fluxo_a(db):
     """
-    Fixture para criar a massa de dados inicial persistida no banco de testes:
+    Fixture para criar os dados iniciais persistida no banco de testes:
     - 1 Unidade
     - 1 Cliente cadastrado (com senha hash)
     - 1 Categoria e 1 Produto com estoque disponível
@@ -73,25 +73,25 @@ def obter_token_autenticado(client, email: str, senha: str) -> dict:
 # TESTES DO FLUXO A (PEDIDO -> PAGAMENTO MOCK -> ATUALIZAÇÃO DE STATUS)
 # ==============================================================================
 
-def test_passo_1_criar_pedido_com_sucesso(client, db, massa_dados_fluxo_a):
+def test_passo_1_criar_pedido_com_sucesso(client, db, dados_fluxo_a):
     """
     Passo 1: Cliente autenticado cria um pedido com itens válidos.
     Deverá persistir no banco com status inicial 'AGUARDANDO_PAGAMENTO'.
     """
     headers = obter_token_autenticado(
         client, 
-        massa_dados_fluxo_a["cliente_email"], 
-        massa_dados_fluxo_a["cliente_senha"]
+        dados_fluxo_a["cliente_email"], 
+        dados_fluxo_a["cliente_senha"]
     )
 
     payload_pedido = {
-        "unidade_id": massa_dados_fluxo_a["unidade_id"],
+        "unidade_id": dados_fluxo_a["unidade_id"],
         "canal_pedido": "APP",
         "itens": [
             {
-                "produto_id": massa_dados_fluxo_a["produto_id"],
+                "produto_id": dados_fluxo_a["produto_id"],
                 "quantidade": 2,
-                "preco_unitario": massa_dados_fluxo_a["preco_unitario"]
+                "preco_unitario": dados_fluxo_a["preco_unitario"]
             }
         ]
     }
@@ -110,26 +110,26 @@ def test_passo_1_criar_pedido_com_sucesso(client, db, massa_dados_fluxo_a):
     assert pedido_db.status == StatusPedido.AGUARDANDO_PAGAMENTO
 
 
-def test_passo_2_validar_regras_basicas_sem_estoque(client, massa_dados_fluxo_a):
+def test_passo_2_validar_regras_basicas_sem_estoque(client, dados_fluxo_a):
     """
     Passo 2 (Validação/Regra de Negócio): Tentar criar pedido solicitando
     quantidade maior do que o estoque disponível.
     """
     headers = obter_token_autenticado(
         client, 
-        massa_dados_fluxo_a["cliente_email"], 
-        massa_dados_fluxo_a["cliente_senha"]
+        dados_fluxo_a["cliente_email"], 
+        dados_fluxo_a["cliente_senha"]
     )
 
     # Solicita 999 unidades (estoque disponível é 20)
     payload_invalido = {
-        "unidade_id": massa_dados_fluxo_a["unidade_id"],
+        "unidade_id": dados_fluxo_a["unidade_id"],
         "canal_pedido": "APP",
         "itens": [
             {
-                "produto_id": massa_dados_fluxo_a["produto_id"],
+                "produto_id": dados_fluxo_a["produto_id"],
                 "quantidade": 999,
-                "preco_unitario": massa_dados_fluxo_a["preco_unitario"]
+                "preco_unitario": dados_fluxo_a["preco_unitario"]
             }
         ]
     }
@@ -143,26 +143,26 @@ def test_passo_2_validar_regras_basicas_sem_estoque(client, massa_dados_fluxo_a)
     assert "message" in dados_erro
 
 
-def test_passo_3_e_4_registrar_pagamento_mock_e_atualizar_status(client, db, massa_dados_fluxo_a):
+def test_passo_3_e_4_registrar_pagamento_mock_e_atualizar_status(client, db, dados_fluxo_a):
     """
     Passos 3 e 4: Registrar o pagamento mock de um pedido existente e verificar
     a atualização automática do status do pedido no banco para 'EM_PREPARACAO'.
     """
     headers = obter_token_autenticado(
         client, 
-        massa_dados_fluxo_a["cliente_email"], 
-        massa_dados_fluxo_a["cliente_senha"]
+        dados_fluxo_a["cliente_email"], 
+        dados_fluxo_a["cliente_senha"]
     )
 
     # 1. Cria o Pedido
     payload_pedido = {
-        "unidade_id": massa_dados_fluxo_a["unidade_id"],
+        "unidade_id": dados_fluxo_a["unidade_id"],
         "canal_pedido": "APP",
         "itens": [
             {
-                "produto_id": massa_dados_fluxo_a["produto_id"],
+                "produto_id": dados_fluxo_a["produto_id"],
                 "quantidade": 1,
-                "preco_unitario": massa_dados_fluxo_a["preco_unitario"]
+                "preco_unitario": dados_fluxo_a["preco_unitario"]
             }
         ]
     }
