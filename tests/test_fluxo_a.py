@@ -1,7 +1,7 @@
 import pytest
 from app.domain.models import Usuario, Unidade, Categoria, Produto, EstoqueUnidade, Pedido
 from app.domain.enums import PerfilUsuario, StatusPedido, CanalPedido
-from app.core.security import get_password_hash
+from app.core.security import gerar_hash_senha
 
 @pytest.fixture
 def dados_fluxo_a(db):
@@ -23,7 +23,7 @@ def dados_fluxo_a(db):
     cliente = Usuario(
         nome="Larissa Cavalcante",
         email="larissa.cavalcante@email.com",
-        senha_hash=get_password_hash("cliente123"),
+        senha_hash=gerar_hash_senha("cliente123"),
         perfil=PerfilUsuario.CLIENTE,
         consentimento_lgpd=True
     )
