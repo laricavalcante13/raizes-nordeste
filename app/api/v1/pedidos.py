@@ -136,16 +136,21 @@ def criar_pedido(
 # -----------------------------------------------------------------------------
 # UC16: Consultar Status e Histórico de Pedidos
 # -----------------------------------------------------------------------------
-@router.get("", response_model=List[PedidoResponseSchema], summary="UC16: Listar meus pedidos ou todos (Gerente/Admin)")
+
+@router.get("", response_model=List[PedidoResponseSchema], summary="UC16: Listar pedidos")
 def listar_pedidos(
+    page: int = Query(default=1, ge=1, description="Número da página"),
+    limit: int = Query(default=10, ge=1, le=100, description="Itens por página"),
     db: Session = Depends(get_db),
     usuario_atual: Usuario = Depends(get_current_user)
 ):
-    if usuario_atual.perfil in [PerfilUsuario.GERENTE, PerfilUsuario.ADMIN, PerfilUsuario.ATENDENTE]:
-        return db.query(Pedido).all()
-    
-    return db.query(Pedido).filter(Pedido.cliente_id == usuario_atual.id).all()
+    query = db.query(Pedido)
 
+    if usuario_atual.perfil not in [PerfilUsuario.GERENTE, PerfilUsuario.ADMIN, PerfilUsuario.ATENDENTE]:
+        query = query.filter(Pedido.cliente_id == usuario_atual.id)
+
+    offset = (page - 1) * limit
+    return query.order_by(Pedido.criado_em.desc()).offset(offset).limit(limit).all()
 
 @router.get("/{pedido_id}", response_model=PedidoResponseSchema, summary="UC16: Obter detalhes e status de um pedido")
 def obter_pedido(
@@ -197,7 +202,7 @@ def processar_pagamento_mock(
                 descricao=f"Pontos acumulados pelo Pedido #{pedido.id}"
             ))
 
-        mensagem = f"Pagamento APROVADO! Você ganhou +{pontos_ganhos} pontos de fidelidade! Pedido enviado para o KDS."
+        mensagem = f"Pagamento APROVADO! Você ganhou +{pontos_ganhos} pontos de fidelidade! Pedido enviado para a cozinha."
     else:
         pedido.status_pagamento = StatusPagamento.RECUSADO
         mensagem = f"Pagamento RECUSADO via {payload.forma_pagamento}."
@@ -270,13 +275,13 @@ def cancelar_pedido(
     db.refresh(pedido)
 
     return pedido
-# -----------------------------------------------------------------------------
-# UC18: Visualizar Fila de Produção KDS
+# ---------------------------------------------------------------------------
+# UC18: Visualizar Fila de Produção 
 # -----------------------------------------------------------------------------
 @router.get(
-    "/unidades/{unidade_id}/kds-fila",
+    "/unidades/{unidade_id}/fila-cozinha",
     response_model=List[PedidoKDSResponseSchema],
-    summary="UC18: Visualizar Fila de Produção KDS da Cozinha por Unidade"
+    summary="UC18: Visualizar Fila de Produção da Cozinha por Unidade"
 )
 def visualizar_fila_kds(
     unidade_id: int,
@@ -324,7 +329,7 @@ def visualizar_fila_kds(
 
 
 # -----------------------------------------------------------------------------
-# UC19: Atualizar Status do Pedido para PRONTO (KDS)
+# UC19: Atualizar Status do Pedido para PRONTO
 # -----------------------------------------------------------------------------
 @router.patch(
     "/{pedido_id}/pronto",

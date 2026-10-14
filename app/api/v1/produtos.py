@@ -53,9 +53,14 @@ def criar_produto(
     db.refresh(produto)
     return produto
 
-@router.get("", response_model=List[ProdutoResponseSchema], summary="Listar todos os produtos ativas no sistema")
-def listar_produtos(db: Session = Depends(get_db)):
-    return db.query(Produto).filter(Produto.ativo == True).all()
+@router.get("", response_model=List[ProdutoResponseSchema], summary="UC08: Listar produtos ativos no sistema")
+def listar_produtos(
+    page: int = Query(default=1, ge=1, description="Número da página"),
+    limit: int = Query(default=10, ge=1, le=100, description="Itens por página"),
+    db: Session = Depends(get_db)
+):
+    offset = (page - 1) * limit
+    return db.query(Produto).filter(Produto.ativo == True).offset(offset).limit(limit).all()
 
 @router.patch("/{produto_id}", response_model=ProdutoResponseSchema, summary="UC08: Editar produto")
 def editar_produto(

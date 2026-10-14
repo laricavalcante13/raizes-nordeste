@@ -1,5 +1,5 @@
 from typing import List
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 
 from app.infrastructure.database import get_db
@@ -13,13 +13,27 @@ router = APIRouter(prefix="/estoque", tags=["Controle de Estoque"])
 @router.get("/unidades/{unidade_id}", response_model=List[EstoqueResponseSchema], summary="UC10: Consultar saldo de estoque por unidade")
 def consultar_estoque_unidade(
     unidade_id: int,
+    page: int = Query(default=1, ge=1, description="Número da página"),
+    limit: int = Query(default=10, ge=1, le=100, description="Itens por página"),
     db: Session = Depends(get_db),
     _: Usuario = Depends(get_current_user)
 ):
     if not db.query(Unidade).filter(Unidade.id == unidade_id).first():
-        raise HTTPException(status_code=404, detail="Unidade não encontrada.")
-    return db.query(EstoqueUnidade).filter(EstoqueUnidade.unidade_id == unidade_id).all()
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Unidade não encontrada."
+        )
 
+    offset = (page - 1) * limit
+    return (
+        db.query(EstoqueUnidade)
+        .filter(EstoqueUnidade.unidade_id == unidade_id)
+        .offset(offset)
+        .limit(limit)
+        .all()
+    )
+
+   
 @router.put("/unidades/{unidade_id}/produtos/{produto_id}", response_model=EstoqueResponseSchema, summary="UC10: Entradas/Saídas de estoque por produto e unidade")
 def atualizar_estoque_unidade(
     unidade_id: int,

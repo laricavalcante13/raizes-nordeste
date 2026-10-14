@@ -1,5 +1,5 @@
 from typing import List
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 
 from app.infrastructure.database import get_db
@@ -58,19 +58,15 @@ def criar_colaborador(
 # -----------------------------------------------------------------------------
 # READ LIST: Listar todos os usuários (Restrito a GERENTE e ADMIN)
 # -----------------------------------------------------------------------------
-@router.get(
-    "",
-    response_model=List[UsuarioResponseSchema],
-    summary="Listar todos os usuários cadastrados"
-)
+@router.get("", response_model=List[UsuarioResponseSchema], summary="UC03: Listar usuários")
 def listar_usuarios(
-    skip: int = 0,
-    limit: int = 50,
+    page: int = Query(default=1, ge=1, description="Número da página"),
+    limit: int = Query(default=10, ge=1, le=100, description="Itens por página"),
     db: Session = Depends(get_db),
-    usuario_atual: Usuario = Depends(exigir_perfil([PerfilUsuario.GERENTE, PerfilUsuario.ADMIN]))
+    _: Usuario = Depends(exigir_perfil([PerfilUsuario.GERENTE, PerfilUsuario.ADMIN]))
 ):
-    usuarios = db.query(Usuario).offset(skip).limit(limit).all()
-    return usuarios
+    offset = (page - 1) * limit
+    return db.query(Usuario).offset(offset).limit(limit).all()
 
 
 # -----------------------------------------------------------------------------
