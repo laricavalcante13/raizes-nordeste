@@ -42,4 +42,28 @@ class UsuarioResponseSchema(BaseModel):
     class Config:
         from_attributes = True
 
+class TransacaoFidelidadeSchema(BaseModel):
+    id: int
+    quantidade_pontos: int
+    tipo_operacao: str
+    descricao: str | None = None
+    criado_em: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class SaldoFidelidadeResponseSchema(BaseModel):
+    usuario_id: int
+    saldo_pontos: int
+    historico_recente: list[TransacaoFidelidadeSchema]
+
+    class Config:
+        from_attributes = True
+
+
+class ResgatarPontosSchema(BaseModel):
+    pontos_para_resgatar: int = Field(..., gt=0, example=100)
+    descricao_recompensa: str = Field(..., example="Cupom R$ 10 off")
+
 UsuarioUpdateSchema.model_rebuild()

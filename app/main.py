@@ -4,7 +4,7 @@ from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from fastapi.responses import JSONResponse
 
-from app.api.v1 import pedidos, pagamentos, usuarios, auth, estoque, cardapio
+from app.api.v1 import pedidos, pagamentos, usuarios, auth, estoque, produtos, unidades, fidelidade
 
 app = FastAPI(
     title="API Rede Raízes do Nordeste",
@@ -17,7 +17,9 @@ app.include_router(usuarios.router, prefix="/api/v1")
 app.include_router(pedidos.router, prefix="/api/v1")
 app.include_router(pagamentos.router, prefix="/api/v1")
 app.include_router(estoque.router, prefix="/api/v1")
-app.include_router(cardapio.router, prefix="/api/v1")
+app.include_router(produtos.router, prefix="/api/v1")
+app.include_router(unidades.router, prefix="/api/v1")
+app.include_router(fidelidade.router, prefix="/api/v1")
 
 
 # Mapeamento de mensagens/codificação amigável conforme o Status Code

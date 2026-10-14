@@ -20,3 +20,8 @@ class PerfilUsuario(str, enum.Enum):
     COZINHA = "COZINHA"
     GERENTE = "GERENTE"
     ADMIN = "ADMIN"
+
+class StatusPagamento(str, enum.Enum):
+    AGUARDANDO = "AGUARDANDO"
+    APROVADO = "APROVADO"
+    RECUSADO = "RECUSADO"

@@ -15,7 +15,7 @@ from app.schemas.usuario import (
 from app.core.security import gerar_hash_senha
 from app.api.deps import get_current_user, exigir_perfil
 
-router = APIRouter(prefix="/usuarios", tags=["Gestão de Usuários (CRUD)"])
+router = APIRouter(prefix="/usuarios", tags=["Usuários"])
 
 
 # -----------------------------------------------------------------------------

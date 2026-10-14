@@ -6,7 +6,7 @@ from app.domain.enums import PerfilUsuario
 from app.schemas.usuario import ClienteCreateSchema, UsuarioResponseSchema
 from app.core.security import gerar_hash_senha
 
-router = APIRouter(prefix="/auth", tags=["Autenticação & LGPD"])
+router = APIRouter(prefix="/auth", tags=["Autenticação de Usuários"])
 
 @router.post(
     "/registrar-cliente", 

@@ -16,18 +16,30 @@ class Usuario(Base):
     consentimento_lgpd = Column(Boolean, default=True)
     criado_em = Column(DateTime, default=datetime.utcnow)
 
+from sqlalchemy import Column, Integer, String, Numeric, Enum, ForeignKey, DateTime
+from sqlalchemy.orm import relationship
+from datetime import datetime, timezone
+from app.domain.enums import CanalPedido, StatusPedido, StatusPagamento
+
 class Pedido(Base):
     __tablename__ = "pedidos"
 
     id = Column(Integer, primary_key=True, index=True)
     cliente_id = Column(Integer, ForeignKey("usuarios.id"), nullable=False)
     unidade_id = Column(Integer, ForeignKey("unidades.id"), nullable=False)
-    canal_pedido = Column(Enum(CanalPedido), nullable=False) # Requisito de Multicanalidade
-    status = Column(Enum(StatusPedido), default=StatusPedido.AGUARDANDO_PAGAMENTO)
-    valor_total = Column(Float, default=0.0)
-    criado_em = Column(DateTime, default=datetime.utcnow)
+    canal_venda = Column(Enum(CanalPedido), nullable=False)
+    status = Column(Enum(StatusPedido), default=StatusPedido.AGUARDANDO_PAGAMENTO, nullable=False)
+    status_pagamento = Column(Enum(StatusPagamento), default=StatusPagamento.AGUARDANDO, nullable=False)
+    valor_total = Column(Numeric(10, 2), default=0.00, nullable=False)
+    desconto_aplicado = Column(Numeric(10, 2), default=0.00, nullable=False)
+    pontos_utilizados = Column(Integer, default=0, nullable=False)
+    observacao = Column(String(255), nullable=True)
+    criado_em = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
-    itens = relationship("ItemPedido", back_populates="pedido")
+    cliente = relationship("Usuario")
+    unidade = relationship("Unidade")
+    itens = relationship("ItemPedido", back_populates="pedido", cascade="all, delete-orphan")
+
 
 class ItemPedido(Base):
     __tablename__ = "itens_pedido"
@@ -36,7 +48,8 @@ class ItemPedido(Base):
     pedido_id = Column(Integer, ForeignKey("pedidos.id"), nullable=False)
     produto_id = Column(Integer, ForeignKey("produtos.id"), nullable=False)
     quantidade = Column(Integer, nullable=False)
-    preco_unitario = Column(Float, nullable=False)
+    preco_unitario = Column(Numeric(10, 2), nullable=False)
+    subtotal = Column(Numeric(10, 2), nullable=False)
 
     pedido = relationship("Pedido", back_populates="itens")
     produto = relationship("Produto")
@@ -56,7 +69,7 @@ class Categoria(Base):
     __tablename__ = "categorias"
 
     id = Column(Integer, primary_key=True, index=True)
-    nome = Column(String(100), nullable=False, unique=True)  # ex: "Bebidas", "Tapiocas"
+    nome = Column(String(100), nullable=False, unique=True) 
     descricao = Column(String(255), nullable=True)
 
     produtos = relationship("Produto", back_populates="categoria")
@@ -84,3 +97,25 @@ class EstoqueUnidade(Base):
 
     unidade = relationship("Unidade", back_populates="estoques")
     produto = relationship("Produto", back_populates="estoques")
+
+class ContaFidelidade(Base):
+    __tablename__ = "contas_fidelidade"
+
+    id = Column(Integer, primary_key=True, index=True)
+    usuario_id = Column(Integer, ForeignKey("usuarios.id"), nullable=False, unique=True)
+    saldo_pontos = Column(Integer, default=0, nullable=False)
+
+    usuario = relationship("Usuario")
+    historico = relationship("HistoricoFidelidade", back_populates="conta", cascade="all, delete-orphan")
+
+class HistoricoFidelidade(Base):
+    __tablename__ = "historico_fidelidade"
+
+    id = Column(Integer, primary_key=True, index=True)
+    conta_id = Column(Integer, ForeignKey("contas_fidelidade.id"), nullable=False)
+    quantidade_pontos = Column(Integer, nullable=False) # Positivo (acúmulo) ou Negativo (resgate)
+    tipo_operacao = Column(String(50), nullable=False) # ACUMULO_PEDIDO, RESGATE_RECOMPENSA, AJUSTE_ADMIN
+    descricao = Column(String(255), nullable=True)
+    criado_em = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+    conta = relationship("ContaFidelidade", back_populates="historico")
