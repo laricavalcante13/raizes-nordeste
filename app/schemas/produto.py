@@ -5,7 +5,7 @@ class ProdutoCardapioSchema(BaseModel):
     id: int
     nome: str
     descricao: str | None
-    preco_base: Decimal
+    preco: Decimal
     categoria_id: int
     categoria_nome: str
     quantidade_estoque: int

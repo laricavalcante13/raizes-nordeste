@@ -1,0 +1,7 @@
+log_auditoria = LogAuditoria(
+    acao="CRIAR_PEDIDO",
+    usuario_id=current_user.id, # ou o ID do usuário autenticado
+    detalhes=f"Pedido ID {novo_pedido.id} criado com sucesso na unidade {novo_pedido.unidade_id}"
+)
+db.add(log_auditoria)
+db.commit()

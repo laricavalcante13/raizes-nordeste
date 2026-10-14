@@ -33,6 +33,8 @@ Certifique-se de ter instalados na sua máquina local ou servidor os seguintes c
    │       ├── pedidos.py
    │       ├── pagamentos.py
    │       └── fidelidade.py
+   ├── core/
+   |   └── security.py         # Segurança de autenticação
    ├── domain/
    │   ├── enums.py            # Enums do sistema (Perfil, Status, Canais)
    │   └── models.py           # Modelos ORM SQLAlchemy
@@ -138,14 +140,13 @@ Bash
 python -m uvicorn app.main:app --reload
 A API estará acessível em: http://localhost:8000
 
+
 7. Acesso à Documentação (Swagger / OpenAPI)
 Com o servidor rodando, acesse as documentações interativas geradas automaticamente pelo FastAPI no navegador:
 
-Swagger UI (Recomendado): http://localhost:8000/docs
-
-ReDoc: http://localhost:8000/redoc
-
-OpenAPI Schema (JSON): http://localhost:8000/openapi.json
+- Swagger UI (Recomendado): http://localhost:8000/docs
+- ReDoc: http://localhost:8000/redoc
+- OpenAPI Schema (JSON): http://localhost:8000/openapi.json
 
 Como autenticar no Swagger:
 Acesse http://localhost:8000/docs.
@@ -155,6 +156,7 @@ Clique no botão Authorize (cadeado no canto superior direito).
 Faça requisição no endpoint POST /api/v1/auth/login com as credenciais acima para obter o access_token.
 
 Insira o Token no modal do Swagger ou cole a credencial de login direto na autenticação OAuth2 da página.
+
 
 8. Execução de Testes Automatizados
 Os testes automatizados cobrem autenticação, validações do Pydantic, isolamento por perfis (RBAC), operações KDS e fluxo financeiro do programa de fidelidade.

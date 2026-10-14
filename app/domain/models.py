@@ -81,7 +81,7 @@ class Produto(Base):
     categoria_id = Column(Integer, ForeignKey("categorias.id"), nullable=False)
     nome = Column(String(100), nullable=False)
     descricao = Column(String(255), nullable=True)
-    preco_base = Column(Float(10, 2), nullable=False)
+    preco = Column(Float(10, 2), nullable=False)
     ativo = Column(Boolean, default=True, nullable=False)
 
     categoria = relationship("Categoria", back_populates="produtos")
@@ -119,3 +119,12 @@ class HistoricoFidelidade(Base):
     criado_em = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     conta = relationship("ContaFidelidade", back_populates="historico")
+
+class LogAuditoria(Base):
+    __tablename__ = "logs_auditoria"
+
+    id = Column(Integer, primary_key=True, index=True)
+    acao = Column(String, nullable=False)      
+    usuario_id = Column(Integer, ForeignKey("usuarios.id"), nullable=True)
+    detalhes = Column(String, nullable=True)
+    data_hora = Column(DateTime, default=datetime.utcnow)

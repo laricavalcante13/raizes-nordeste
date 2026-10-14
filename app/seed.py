@@ -28,9 +28,9 @@ def popular_banco():
         print("Iniciando criação de dados no banco...")
 
         # 2. Criar Unidades 
-        unidade_matriz = Unidade(nome="Raízes do Nordeste - Matriz", cidade="Recife", endereco="Av. das Torres, 1500", ativo=True)
-        unidade_olinda = Unidade(nome="Raízes do Nordeste - Olinda", cidade="Olinda", endereco="R. Marechal Deodoro, 520", ativo=True)
-        unidade_joaopessoa = Unidade(nome="Raízes do Nordeste - João Pessoa", cidade="João Pessoa", endereco="Av. Cel. Laurindo, 849", ativo=True)
+        unidade_matriz = Unidade(nome="Raízes do Nordeste - Matriz", endereco="Av. das Torres, 1500, Recife", ativo=True)
+        unidade_olinda = Unidade(nome="Raízes do Nordeste - Olinda", endereco="R. Marechal Deodoro, 520, Olinda", ativo=True)
+        unidade_joaopessoa = Unidade(nome="Raízes do Nordeste - João Pessoa", endereco="Av. Cel. Laurindo, 849, João Pessoa", ativo=True)
 
         db.add_all([unidade_matriz, unidade_joaopessoa, unidade_olinda])
         db.commit()
@@ -100,12 +100,12 @@ def popular_banco():
 
         # 6. Criar Estoque por Unidade
         estoques = [
-            EstoqueUnidade(unidade_id=unidade_matriz.id, produto_id=prod1.id, quantidade_disponivel=50, disponivel=True),
-            EstoqueUnidade(unidade_id=unidade_matriz.id, produto_id=prod2.id, quantidade_disponivel=40, disponivel=True),
-            EstoqueUnidade(unidade_id=unidade_matriz.id, produto_id=prod3.id, quantidade_disponivel=100, disponivel=True),
-            EstoqueUnidade(unidade_id=unidade_joaopessoa.id, produto_id=prod4.id, quantidade_disponivel=30, disponivel=True),
-            EstoqueUnidade(unidade_id=unidade_olinda.id, produto_id=prod1.id, quantidade_disponivel=25, disponivel=True),
-            EstoqueUnidade(unidade_id=unidade_joaopessoa.id, produto_id=prod3.id, quantidade_disponivel=60, disponivel=True),
+            EstoqueUnidade(unidade_id=unidade_matriz.id, produto_id=prod1.id, quantidade=50),
+            EstoqueUnidade(unidade_id=unidade_matriz.id, produto_id=prod2.id, quantidade=40),
+            EstoqueUnidade(unidade_id=unidade_matriz.id, produto_id=prod3.id, quantidade=100),
+            EstoqueUnidade(unidade_id=unidade_joaopessoa.id, produto_id=prod4.id, quantidade=30),
+            EstoqueUnidade(unidade_id=unidade_olinda.id, produto_id=prod1.id, quantidade=25),
+            EstoqueUnidade(unidade_id=unidade_joaopessoa.id, produto_id=prod3.id, quantidade=60),
         ]
         db.add_all(estoques)
         db.commit()
