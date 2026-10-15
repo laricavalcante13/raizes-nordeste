@@ -2,12 +2,16 @@ from datetime import datetime, timedelta, timezone
 from typing import Optional
 from jose import JWTError, jwt
 from passlib.context import CryptContext
+# import hashlib
 
 SECRET_KEY = "LOEMIPSUMBDJAJKAKVSDV_646DFBSF64_SDNOBOT562"
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 480  # 8 horas de validade
+ACCESS_TOKEN_EXPIRE_MINUTES = 480 
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+pwd_context = CryptContext(schemes=["pbkdf2_sha256", "bcrypt"], deprecated="auto")
+
+# pwd_context = CryptContext(schemes=["pbkdf2_sha256", "bcrypt"], deprecated="auto")
+
 
 def gerar_hash_senha(senha: str) -> str:
     return pwd_context.hash(senha)

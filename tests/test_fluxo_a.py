@@ -63,11 +63,13 @@ def dados_fluxo_a(db):
 
 
 def obter_token_autenticado(client, email: str, senha: str) -> dict:
-    """Helper para realizar login e retornar headers com JWT Bearer Token."""
-    response = client.post("/api/v1/auth/login", json={"email": email, "senha": senha})
-    token = response.json()["access_token"]
-    return {"Authorization": f"Bearer {token}"}
-
+    response = client.post(
+    "/api/v1/auth/login", 
+    data={
+        "username": email,  
+        "password": senha  
+    }
+)
 
 # ==============================================================================
 # TESTES DO FLUXO A (PEDIDO -> PAGAMENTO MOCK -> ATUALIZAÇÃO DE STATUS)

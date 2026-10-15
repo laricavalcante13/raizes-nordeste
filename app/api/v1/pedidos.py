@@ -112,7 +112,7 @@ def criar_pedido(
         canal_venda=payload.canal_venda,
         observacao=payload.observacao,
         status=StatusPedido.AGUARDANDO_PAGAMENTO,
-        status_pagamento=StatusPagamento.PENDENTE,
+        status_pagamento=StatusPagamento.AGUARDANDO,
         valor_total=valor_final_pedido,
         desconto_aplicado=desconto,
         pontos_utilizados=pontos_utilizados
