@@ -72,7 +72,7 @@ def criar_pedido(
 
         # Baixa preventiva no estoque
         estoque.quantidade -= item.quantidade
-        item_subtotal = Decimal(str(produto.preco_base)) * item.quantidade
+        item_subtotal = Decimal(str(produto.preco)) * item.quantidade
         subtotal_pedido += item_subtotal
 
         itens_para_inserir.append((produto, item.quantidade, item_subtotal))
@@ -125,7 +125,7 @@ def criar_pedido(
             pedido_id=novo_pedido.id,
             produto_id=produto.id,
             quantidade=quantidade,
-            preco_unitario=produto.preco_base,
+            preco_unitario=produto.preco,
             subtotal=subtotal_item
         ))
 
@@ -187,7 +187,7 @@ def processar_pagamento_mock(
 
     if payload.simular_sucesso:
         pedido.status_pagamento = StatusPagamento.APROVADO
-        pedido.status = StatusPedido.EM_PREPARO
+        pedido.status = StatusPedido.EM_PREPARACAO
 
         # === ACÚMULO AUTOMÁTICO DE PONTOS ===
         # Regra: 1 Ponto para cada R$ 1,00 pago no valor final do pedido
