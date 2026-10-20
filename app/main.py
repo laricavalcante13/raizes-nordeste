@@ -5,6 +5,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from fastapi.responses import JSONResponse
 
 from app.api.v1 import pedidos, pagamentos, usuarios, auth, estoque, produtos, unidades, fidelidade
+from app.infrastructure.database import Base, engine
 
 app = FastAPI(
     title="API Restaurantes Raízes do Nordeste",
@@ -89,3 +90,5 @@ async def global_exception_handler(request: Request, exc: Exception):
             "path": request.url.path
         }
     )
+
+Base.metadata.create_all(bind=engine)
