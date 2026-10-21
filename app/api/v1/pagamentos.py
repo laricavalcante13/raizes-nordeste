@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from app.infrastructure.database import get_db
-from app.domain.models import Pedido
+from app.domain.models import Pedido, LogAuditoria
 from app.domain.enums import StatusPedido
 from app.infrastructure.mock_pagamento import ServicoPagamentoMock
 from app.api.deps import get_current_user
@@ -13,7 +13,11 @@ class ProcessarPagamentoSchema(BaseModel):
     pedido_id: int
     forma_pagamento: str
 
-@router.post("/processar")
+@router.post(
+        "/processar",
+        summary="Processa pagamentos através de um gateway mock externo"
+)
+
 def processar_pagamento_mock(
     payload: ProcessarPagamentoSchema, 
     db: Session = Depends(get_db),
@@ -29,18 +33,27 @@ def processar_pagamento_mock(
             detail="O pedido não está no status AGUARDANDO_PAGAMENTO."
         )
 
-    # Executa mock externo
+    #executa pagamento externo
     resultado_mock = ServicoPagamentoMock.processar_pagamento(
         pedido_id=pedido.id, 
         valor=pedido.valor_total, 
         forma_pagamento=payload.forma_pagamento
     )
 
-    # Atualiza o status do pedido com base na resposta da API mock
+    # atualiza o status do pedido com base na resposta do gateway de pagamento
     if resultado_mock["status"] == "APROVADO":
         pedido.status = StatusPedido.EM_PREPARACAO
     else:
         pedido.status = StatusPedido.CANCELADO
+
+
+    # log de auditoria
+    log = LogAuditoria(
+        acao="PROCESSAR_PAGAMENTO",
+        usuario_id=usuario_atual.id,
+        detalhes=f"Pagamento do Pedido #{pedido.id} {pedido.status_pagamento} via {payload.forma_pagamento} no valor de R$ {pedido.valor_total}."
+    )
+    db.add(log)
 
     db.commit()
     db.refresh(pedido)

@@ -17,8 +17,7 @@ from app.schemas.produto import (
 
 router = APIRouter(prefix="/produtos", tags=["Produtos"])
 
-# --- CATEGORIAS (UC09) ---
-@router.post("/categorias", response_model=CategoriaResponseSchema, status_code=status.HTTP_201_CREATED, summary="UC09: Cadastrar categoria")
+@router.post("/categorias", response_model=CategoriaResponseSchema, status_code=status.HTTP_201_CREATED, summary="Cadastrar categoria de produtos para o cardápio")
 def criar_categoria(
     payload: CategoriaCreateSchema,
     db: Session = Depends(get_db),
@@ -34,11 +33,16 @@ def criar_categoria(
     return categoria
 
 @router.get("/categorias", response_model=List[CategoriaResponseSchema], summary="Listar categorias de produtos")
-def listar_categorias(db: Session = Depends(get_db)):
+def listar_categorias(
+    page: int = Query(default=1, ge=1, description="Número da página"),
+    limit: int = Query(default=10, ge=1, le=100, description="Itens por página"),
+    db: Session = Depends(get_db)
+):
+    offset = (page - 1) * limit
     return db.query(Categoria).all()
 
-# --- PRODUTOS BASE (UC08) ---
-@router.post("", response_model=ProdutoResponseSchema, status_code=status.HTTP_201_CREATED, summary="UC08: Cadastrar produto")
+
+@router.post("", response_model=ProdutoResponseSchema, status_code=status.HTTP_201_CREATED, summary="Cadastrar produtos")
 def criar_produto(
     payload: ProdutoCreateSchema,
     db: Session = Depends(get_db),
@@ -53,7 +57,7 @@ def criar_produto(
     db.refresh(produto)
     return produto
 
-@router.get("", response_model=List[ProdutoResponseSchema], summary="UC08: Listar produtos ativos no sistema")
+@router.get("", response_model=List[ProdutoResponseSchema], summary="Listar produtos ativos no sistema")
 def listar_produtos(
     page: int = Query(default=1, ge=1, description="Número da página"),
     limit: int = Query(default=10, ge=1, le=100, description="Itens por página"),
@@ -62,7 +66,8 @@ def listar_produtos(
     offset = (page - 1) * limit
     return db.query(Produto).filter(Produto.ativo == True).offset(offset).limit(limit).all()
 
-@router.patch("/{produto_id}", response_model=ProdutoResponseSchema, summary="UC08: Editar produto")
+
+@router.patch("/{produto_id}", response_model=ProdutoResponseSchema, summary="Editar produto")
 def editar_produto(
     produto_id: int,
     payload: ProdutoUpdateSchema,
@@ -80,18 +85,17 @@ def editar_produto(
     db.refresh(produto)
     return produto
 
-# --- CONSULTA DE CARDÁPIO POR UNIDADE (UC11 / UC12) ---
 @router.get(
     "/cardapio/unidades/{unidade_id}",
     response_model=CardapioUnidadeResponseSchema,
-    summary="UC11 e UC12: Consultar Cardápio por Unidade e Categoria",
+    summary="Consultar Cardápio",
 )
 def consultar_cardapio_unidade(
     unidade_id: int,
     categoria_id: int
     | None = Query(
         default=None,
-        description="UC12: Filtrar produtos por ID da Categoria",
+        description="Filtrar produtos por ID da Categoria",
     ),
     apenas_disponiveis: bool = Query(
         default=True,

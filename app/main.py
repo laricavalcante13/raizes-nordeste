@@ -22,8 +22,7 @@ app.include_router(produtos.router, prefix="/api/v1")
 app.include_router(unidades.router, prefix="/api/v1")
 app.include_router(fidelidade.router, prefix="/api/v1")
 
-
-# Mapeamento de mensagens/codificação amigável conforme o Status Code
+#mensagens personalizadas de acordo com o código do erro
 STATUS_CODE_MAP = {
     400: ("BAD_REQUEST", "Requisição inválida."),
     401: ("UNAUTHORIZED", "Não autorizado. Token ausente ou inválido."),
@@ -38,7 +37,7 @@ STATUS_CODE_MAP = {
 }
 
 
-# 1. Tratador para exceções HTTP disparadas com raise HTTPException(...)
+#tratador para exceções HTTP disparadas com raise HTTPException
 @app.exception_handler(StarletteHTTPException)
 async def http_exception_handler(request: Request, exc: StarletteHTTPException):
     error_code, default_msg = STATUS_CODE_MAP.get(
@@ -46,7 +45,7 @@ async def http_exception_handler(request: Request, exc: StarletteHTTPException):
         ("HTTP_ERROR", "Ocorreu um erro na requisição.")
     )
     
-    # Se uma mensagem específica foi passada no 'detail', usamos ela; senão, usamos a mensagem padrão
+    # Se uma mensagem específica foi passada no 'detail', o sistema usa; senão, o sistema usa a mensagem padrão
     message = exc.detail if isinstance(exc.detail, str) else default_msg
     details = exc.detail if not isinstance(exc.detail, str) else [exc.detail]
 
@@ -62,7 +61,7 @@ async def http_exception_handler(request: Request, exc: StarletteHTTPException):
     )
 
 
-# 2. Tratador para erros de validação do Pydantic (ex: corpo da requisição ou query params inválidos - Status 422)
+#tratador para erros de validação do Pydantic 
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
     return JSONResponse(
@@ -77,7 +76,7 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
     )
 
 
-# 3. Tratador genérico para exceções não tratadas / erros inesperados no servidor (Status 500)
+#tratador genérico para exceções não tratadas - 500
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
     return JSONResponse(

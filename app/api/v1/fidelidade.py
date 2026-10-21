@@ -22,14 +22,10 @@ def obter_ou_criar_conta_fidelidade(usuario_id: int, db: Session) -> ContaFideli
         db.refresh(conta)
     return conta
 
-
-# -----------------------------------------------------------------------------
-# Consultar Saldo e Extrato de Pontos
-# -----------------------------------------------------------------------------
 @router.get(
     "/saldo",
     response_model=SaldoFidelidadeResponseSchema,
-    summary="Consultar saldo de pontos e extrato do cliente logado"
+    summary="Consultar saldo de pontos e histórico de uso do programa de fidelidade"
 )
 def consultar_saldo_fidelidade(
     page: int = Query(default=1, ge=1, description="Número da página do histórico"),
@@ -56,9 +52,6 @@ def consultar_saldo_fidelidade(
     )
 
 
-# -----------------------------------------------------------------------------
-# Resgatar Pontos por Recompensas
-# -----------------------------------------------------------------------------
 @router.post(
     "/resgatar",
     response_model=SaldoFidelidadeResponseSchema,
@@ -77,7 +70,7 @@ def resgatar_pontos_fidelidade(
             detail=f"Saldo insuficiente. Você possui {conta.saldo_pontos} pontos."
         )
 
-    # Deduz pontos e lança histórico
+    #subtrai pontos
     conta.saldo_pontos -= payload.pontos_para_resgatar
 
     transacao = HistoricoFidelidade(

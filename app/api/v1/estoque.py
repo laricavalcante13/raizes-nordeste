@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 
 from app.infrastructure.database import get_db
-from app.domain.models import Unidade, Produto, EstoqueUnidade, Usuario
+from app.domain.models import Unidade, Produto, EstoqueUnidade, Usuario, LogAuditoria
 from app.domain.enums import PerfilUsuario
 from app.api.deps import exigir_perfil, get_current_user
 from app.schemas.estoque import AtualizarEstoqueSchema, EstoqueResponseSchema
@@ -39,6 +39,7 @@ def atualizar_estoque_unidade(
     unidade_id: int,
     produto_id: int,
     payload: AtualizarEstoqueSchema,
+    usuario_atual: Usuario = Depends(get_current_user),
     db: Session = Depends(get_db),
     _: Usuario = Depends(exigir_perfil([PerfilUsuario.ATENDENTE, PerfilUsuario.GERENTE, PerfilUsuario.ADMIN]))
 ):
@@ -62,6 +63,16 @@ def atualizar_estoque_unidade(
     else:
         estoque.quantidade = payload.quantidade
 
+
+    # log de auditoria
+    log = LogAuditoria(
+        acao="MOV_ESTOQUE",
+        usuario_id=usuario_atual.id,
+        detalhes=f"Estoque do produto {produto_id} na unidade {unidade_id}) alterado por {usuario_atual.email}."
+    )
+    db.add(log)
+    
     db.commit()
     db.refresh(estoque)
+
     return estoque

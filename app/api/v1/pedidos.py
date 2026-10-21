@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from app.infrastructure.database import get_db
 from app.domain.models import (
     Pedido, ItemPedido, Produto, EstoqueUnidade, Unidade, Usuario,
-    ContaFidelidade, HistoricoFidelidade
+    ContaFidelidade, HistoricoFidelidade, LogAuditoria
 )
 from app.domain.enums import StatusPedido, StatusPagamento, PerfilUsuario, CanalPedido
 from app.api.deps import get_current_user, exigir_perfil
@@ -37,10 +37,7 @@ def obter_ou_criar_conta_fidelidade(usuario_id: int, db: Session) -> ContaFideli
     return conta
 
 
-# -----------------------------------------------------------------------------
-# UC13 / UC14: Criar Pedido com validação de estoque e cálculo de subtotal
-# -----------------------------------------------------------------------------
-@router.post("", response_model=PedidoResponseSchema, status_code=status.HTTP_201_CREATED, summary="UC13 & UC14: Criar Pedido Multicanal")
+@router.post("", response_model=PedidoResponseSchema, status_code=status.HTTP_201_CREATED, summary="Criar novo pedido")
 def criar_pedido(
     payload: PedidoCreateSchema,
     db: Session = Depends(get_db),
@@ -50,7 +47,7 @@ def criar_pedido(
     if not unidade:
         raise HTTPException(status_code=404, detail="Unidade informada não encontrada ou inativa.")
 
-    # 1. Calcular o valor total dos produtos e validar estoque
+    # calcular o valor total dos produtos e validar estoque
     subtotal_pedido = Decimal("0.00")
     itens_para_inserir = []
 
@@ -70,14 +67,14 @@ def criar_pedido(
                 detail=f"Estoque insuficiente para o produto '{produto.nome}'. Disponível: {estoque.quantidade if estoque else 0}"
             )
 
-        # Baixa preventiva no estoque
+        # Baixa no estoque
         estoque.quantidade -= item.quantidade
         item_subtotal = Decimal(str(produto.preco)) * item.quantidade
         subtotal_pedido += item_subtotal
 
         itens_para_inserir.append((produto, item.quantidade, item_subtotal))
 
-    # 2. Processar Desconto de Fidelidade (se solicitado)
+    # Processar Desconto de Fidelidade
     desconto = Decimal("0.00")
     pontos_utilizados = 0
 
@@ -133,11 +130,8 @@ def criar_pedido(
     db.refresh(novo_pedido)
     return novo_pedido
 
-# -----------------------------------------------------------------------------
-# UC16: Consultar Status e Histórico de Pedidos
-# -----------------------------------------------------------------------------
 
-@router.get("", response_model=List[PedidoResponseSchema], summary="UC16: Listar pedidos")
+@router.get("", response_model=List[PedidoResponseSchema], summary="Listar pedidos")
 def listar_pedidos(
     page: int = Query(default=1, ge=1, description="Número da página"),
     limit: int = Query(default=10, ge=1, le=100, description="Itens por página"),
@@ -152,7 +146,8 @@ def listar_pedidos(
     offset = (page - 1) * limit
     return query.order_by(Pedido.criado_em.desc()).offset(offset).limit(limit).all()
 
-@router.get("/{pedido_id}", response_model=PedidoResponseSchema, summary="UC16: Obter detalhes e status de um pedido")
+
+@router.get("/{pedido_id}", response_model=PedidoResponseSchema, summary="Obter detalhes do pedido")
 def obter_pedido(
     pedido_id: int,
     db: Session = Depends(get_db),
@@ -168,10 +163,7 @@ def obter_pedido(
     return pedido
 
 
-# -----------------------------------------------------------------------------
-# UC15: Processar Pagamento Mock
-# -----------------------------------------------------------------------------
-@router.post("/{pedido_id}/pagamento-mock", response_model=PagamentoResultadoSchema, summary="UC15: Processar Pagamento Mock e Creditar Fidelidade")
+@router.post("/{pedido_id}/pagamento-mock", response_model=PagamentoResultadoSchema, summary="Processar Pagamento e creditar pontos do programa de fidelidade")
 def processar_pagamento_mock(
     pedido_id: int,
     payload: ProcessarPagamentoSchema,
@@ -189,8 +181,7 @@ def processar_pagamento_mock(
         pedido.status_pagamento = StatusPagamento.APROVADO
         pedido.status = StatusPedido.EM_PREPARACAO
 
-        # === ACÚMULO AUTOMÁTICO DE PONTOS ===
-        # Regra: 1 Ponto para cada R$ 1,00 pago no valor final do pedido
+        # acúmulo de pontos fidelidade
         pontos_ganhos = int(pedido.valor_total)
         if pontos_ganhos > 0:
             conta = obter_ou_criar_conta_fidelidade(pedido.cliente_id, db)
@@ -216,10 +207,8 @@ def processar_pagamento_mock(
         mensagem=mensagem
     )
 
-# -----------------------------------------------------------------------------
-# UC17: Cancelar Pedido (com estorno automático de estoque)
-# -----------------------------------------------------------------------------
-@router.post("/{pedido_id}/cancelar", response_model=PedidoResponseSchema, summary="UC17: Cancelar Pedido com Estorno")
+
+@router.post("/{pedido_id}/cancelar", response_model=PedidoResponseSchema, summary="Cancelar Pedido")
 def cancelar_pedido(
     pedido_id: int,
     db: Session = Depends(get_db),
@@ -238,7 +227,7 @@ def cancelar_pedido(
     if pedido.status == StatusPedido.CANCELADO:
         raise HTTPException(status_code=400, detail="Este pedido já foi cancelado.")
 
-    # 1. Estorno de Estoque
+    # estorno de Estoque
     for item in pedido.itens:
         estoque = db.query(EstoqueUnidade).filter(
             EstoqueUnidade.unidade_id == pedido.unidade_id,
@@ -247,7 +236,7 @@ def cancelar_pedido(
         if estoque:
             estoque.quantidade += item.quantidade
 
-    # 2. Estorno dos pontos de fidelidade utilizados no pedido (se houver)
+    # Estorno dos pontos de fidelidade utilizados no pedido
     conta = obter_ou_criar_conta_fidelidade(pedido.cliente_id, db)
 
     if pedido.pontos_utilizados > 0:
@@ -259,7 +248,7 @@ def cancelar_pedido(
             descricao=f"Devolução de pontos devido ao cancelamento do Pedido #{pedido.id}"
         ))
 
-    # 3. Reverter pontos acumulados caso o pedido já tivesse sido pago
+    # reverter pontos acumulados caso o pedido já tivesse sido pago
     if pedido.status_pagamento == StatusPagamento.APROVADO:
         pontos_para_remover = int(pedido.valor_total)
         conta.saldo_pontos = max(0, conta.saldo_pontos - pontos_para_remover)
@@ -274,10 +263,19 @@ def cancelar_pedido(
     db.commit()
     db.refresh(pedido)
 
-    return pedido
-# ---------------------------------------------------------------------------
-# UC18: Visualizar Fila de Produção 
-# -----------------------------------------------------------------------------
+    #log auditoria
+    log = LogAuditoria(
+        acao="CANCELAR_PEDIDO",
+        usuario_id=usuario_atual.id,
+        detalhes=f"Pedido {pedido.id} cancelado por {usuario_atual.email}."
+    )
+    db.add(log)
+    
+    db.commit()
+    db.refresh(pedido)
+
+    return Pedido
+
 @router.get(
     "/unidades/{unidade_id}/fila-cozinha",
     response_model=List[PedidoKDSResponseSchema],
@@ -328,13 +326,10 @@ def visualizar_fila_kds(
     return resultado
 
 
-# -----------------------------------------------------------------------------
-# UC19: Atualizar Status do Pedido para PRONTO
-# -----------------------------------------------------------------------------
 @router.patch(
     "/{pedido_id}/pronto",
     response_model=AtualizarStatusKDSResponseSchema,
-    summary="UC19: Marcar Pedido como PRONTO na Cozinha"
+    summary="Atualizar status do pedido para PRONTO"
 )
 def marcar_pedido_pronto(
     pedido_id: int,
@@ -363,13 +358,10 @@ def marcar_pedido_pronto(
     )
 
 
-# -----------------------------------------------------------------------------
-# UC20: Atualizar Status para CONCLUIDO / ENTREGUE
-# -----------------------------------------------------------------------------
 @router.patch(
     "/{pedido_id}/entregar",
     response_model=AtualizarStatusKDSResponseSchema,
-    summary="UC20: Marcar Pedido como CONCLUIDO / ENTREGUE"
+    summary="Atualizar status do pedido para ENTREGUE/CONCLUÍDO"
 )
 def marcar_pedido_entregue(
     pedido_id: int,
@@ -394,21 +386,14 @@ def marcar_pedido_entregue(
     return AtualizarStatusKDSResponseSchema(
         pedido_id=pedido.id,
         novo_status=pedido.status,
-        mensagem="Pedido entregue e ciclo de venda concluído com sucesso!"
+        mensagem="Pedido entregue com sucesso!"
     )
+
 
 @router.get(
     "/vendas-por-canal",
     response_model=RelatorioVendasResponseSchema,
-    summary="UC21: Relatório Consolidado de Vendas por Canal"
-)
-# -----------------------------------------------------------------------------
-# UC21: Consultar Relatório de Vendas por Canal
-# -----------------------------------------------------------------------------
-@router.get(
-    "/vendas-por-canal",
-    response_model=RelatorioVendasResponseSchema,
-    summary="UC21: Relatório Consolidado de Vendas por Canal"
+    summary="Relatório de pedidos por canal de venda"
 )
 def consultar_relatorio_vendas_por_canal(
     unidade_id: int | None = Query(default=None, description="Filtrar por ID da Unidade/Filial"),
@@ -475,45 +460,3 @@ def consultar_relatorio_vendas_por_canal(
     )
 
 
-# -----------------------------------------------------------------------------
-# UC22: Consultar Histórico / Log de Transações (Auditoria)
-# -----------------------------------------------------------------------------
-@router.get(
-    "/historico-transacoes",
-    response_model=HistoricoTransacoesResponseSchema,
-    summary="UC22: Auditoria e Log Completo de Transações"
-)
-def consultar_historico_transacoes(
-    unidade_id: int | None = Query(default=None, description="Filtrar por Unidade"),
-    apenas_cancelados: bool = Query(default=False, description="Exibir apenas pedidos cancelados para auditoria"),
-    db: Session = Depends(get_db),
-    _: Usuario = Depends(exigir_perfil([PerfilUsuario.GERENTE, PerfilUsuario.ADMIN]))
-):
-    query = db.query(Pedido)
-
-    if unidade_id is not None:
-        query = query.filter(Pedido.unidade_id == unidade_id)
-
-    if apenas_cancelados:
-        query = query.filter(Pedido.status == StatusPedido.CANCELADO)
-
-    pedidos = query.order_by(Pedido.criado_em.desc()).all()
-
-    transacoes = [
-        TransacaoAuditSchema(
-            pedido_id=p.id,
-            cliente_id=p.cliente_id,
-            unidade_id=p.unidade_id,
-            canal_venda=p.canal_venda,
-            status_pedido=p.status,
-            status_pagamento=p.status_pagamento,
-            valor_total=p.valor_total,
-            criado_em=p.criado_em
-        )
-        for p in pedidos
-    ]
-
-    return HistoricoTransacoesResponseSchema(
-        total_registros=len(transacoes),
-        transacoes=transacoes
-    )
