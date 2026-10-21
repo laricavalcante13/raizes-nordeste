@@ -271,7 +271,7 @@ def solicitar_exclusao_dados_lgpd(
 @router.delete(
     "/{usuario_id}",
     status_code=status.HTTP_204_NO_CONTENT,
-    summary="UC06: Excluir usuário"
+    summary="Excluir usuário"
 )
 def deletar_usuario(
     usuario_id: int,

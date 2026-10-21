@@ -279,7 +279,7 @@ def cancelar_pedido(
 @router.get(
     "/unidades/{unidade_id}/fila-cozinha",
     response_model=List[PedidoKDSResponseSchema],
-    summary="UC18: Visualizar Fila de Produção da Cozinha por Unidade"
+    summary="Consultar pedidos em preparação"
 )
 def visualizar_fila_kds(
     unidade_id: int,
