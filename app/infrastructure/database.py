@@ -11,7 +11,6 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()
 
-# Dependency para injeção de sessão do BD nas rotas
 def get_db():
     db = SessionLocal()
     try:

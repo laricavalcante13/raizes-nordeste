@@ -3,34 +3,31 @@ from datetime import datetime
 from app.domain.enums import PerfilUsuario
 
 class ClienteCreateSchema(BaseModel):
-    nome: str = Field(..., min_length=3, max_length=100, example="Maria Silva")
-    email: EmailStr = Field(..., example="maria@exemplo.com")
-    senha: str = Field(..., min_length=6, example="Senha@123")
+    nome: str = Field(..., min_length=3, max_length=100, example="Larissa Cavalcante")
+    email: EmailStr = Field(..., example="lari.cavalcante13@gmail.com")
+    senha: str = Field(..., min_length=6, example="larissa1234")
     consentimento_lgpd: bool = Field(
         ..., 
         description="Aceite obrigatório dos termos da LGPD para criação de uma conta"
     )
 
-class ColaboradorCreateSchema(BaseModel):
-    nome: str = Field(..., min_length=3, max_length=100, example="Carlos Atendente")
-    email: EmailStr = Field(..., example="carlos@raizes.com.br")
-    senha: str = Field(..., min_length=6, example="Senha@123")
-    perfil: PerfilUsuario = Field(..., example=PerfilUsuario.ATENDENTE)
+class FuncionarioCreateSchema(BaseModel):
+    nome: str = Field(..., min_length=3, max_length=100, example="Amanda Silva")
+    email: EmailStr = Field(..., example="amanda.gerenciafortaleza@raizesnordeste.com.br")
+    senha: str = Field(..., min_length=6, example="raizes@@2025")
+    perfil: PerfilUsuario = Field(..., example=PerfilUsuario.GERENTE)
 
-# Schema para atualização parcial de Usuário (UC04)
 class UsuarioUpdateSchema(BaseModel):
-    nome: str | None = Field(default=None, min_length=3, max_length=100, example="Maria Silva Atualizada")
-    email: EmailStr | None = Field(default=None, example="novo_email@exemplo.com")
-    senha: str | None = Field(default=None, min_length=6, example="NovaSenha@123")
+    nome: str | None = Field(default=None, min_length=3, max_length=100, example="Amanda Silva")
+    email: EmailStr | None = Field(default=None, example="amanda.gerenciamatriz@raizesnordeste.com.br")
+    senha: str | None = Field(default=None, min_length=6, example="raizes@@2026")
     perfil: PerfilUsuario | None = Field(default=None, example=PerfilUsuario.GERENTE)
 
-# Consentimento LGPD
-class ConsentimentoResponseSchema(BaseModel):
+class LGPDResponseSchema(BaseModel):
     usuario_id: int
     consentimento_lgpd: bool
     mensagem: str
 
-# Resposta padrão para listagem e consulta
 class UsuarioResponseSchema(BaseModel):
     id: int
     nome: str
@@ -41,6 +38,8 @@ class UsuarioResponseSchema(BaseModel):
 
     class Config:
         from_attributes = True
+
+#sCHEMA Programa de fidelidade
 
 class TransacaoFidelidadeSchema(BaseModel):
     id: int

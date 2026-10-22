@@ -35,7 +35,7 @@ def get_current_user(
 
 
 def exigir_perfil(perfis_permitidos: list[PerfilUsuario]):
-    def verificador_perfil(
+    def checar_perfil(
         usuario_atual: Usuario = Depends(get_current_user),
     ):
         if usuario_atual.perfil not in perfis_permitidos:
@@ -45,4 +45,4 @@ def exigir_perfil(perfis_permitidos: list[PerfilUsuario]):
             )
         return usuario_atual
 
-    return verificador_perfil
+    return checar_perfil

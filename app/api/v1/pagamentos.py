@@ -4,7 +4,7 @@ from pydantic import BaseModel
 from app.infrastructure.database import get_db
 from app.domain.models import Pedido, LogAuditoria
 from app.domain.enums import StatusPedido
-from app.infrastructure.mock_pagamento import ServicoPagamentoMock
+from app.infrastructure.gateway_pagamento import Pagamento
 from app.api.deps import get_current_user
 
 router = APIRouter(prefix="/pagamentos", tags=["Pagamentos"])
@@ -18,7 +18,7 @@ class ProcessarPagamentoSchema(BaseModel):
         summary="Processa pagamentos através de um gateway mock externo"
 )
 
-def processar_pagamento_mock(
+def processar_pagamento(
     payload: ProcessarPagamentoSchema, 
     db: Session = Depends(get_db),
     usuario_atual = Depends(get_current_user)
@@ -34,14 +34,14 @@ def processar_pagamento_mock(
         )
 
     #executa pagamento externo
-    resultado_mock = ServicoPagamentoMock.processar_pagamento(
+    result_pgto = Pagamento.processar_pagamento(
         pedido_id=pedido.id, 
         valor=pedido.valor_total, 
         forma_pagamento=payload.forma_pagamento
     )
 
     # atualiza o status do pedido com base na resposta do gateway de pagamento
-    if resultado_mock["status"] == "APROVADO":
+    if result_pgto["status"] == "APROVADO":
         pedido.status = StatusPedido.EM_PREPARACAO
     else:
         pedido.status = StatusPedido.CANCELADO
@@ -60,6 +60,6 @@ def processar_pagamento_mock(
 
     return {
         "mensagem": "Processamento de pagamento concluído.",
-        "resultado_mock": resultado_mock,
+        "result_pgto": result_pgto,
         "novo_status_pedido": pedido.status
     }

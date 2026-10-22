@@ -8,26 +8,23 @@ from app.domain.models import Usuario, Unidade, Categoria, Produto, EstoqueUnida
 from app.domain.enums import PerfilUsuario
 from passlib.context import CryptContext
 
-# Configuração de hash de senha
+#hash senha
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 def gerar_hash(senha: str) -> str:
     return pwd_context.hash(senha)
 
-def popular_banco():
-    # criação das tabelas
+def seed_banco():
     Base.metadata.create_all(bind=engine)
     db = SessionLocal()
 
     try:
-        # 1. Verificar se já existem dados
         if db.query(Usuario).first():
-            print("O banco de dados já possui registros. Pressione Ctrl+C para cancelar ou aguarde a finalização.")
+            print("O banco de dados já possui registros.")
             return
 
         print("Iniciando criação de dados no banco...")
 
-        # 2. Criar Unidades 
         unidade_matriz = Unidade(nome="Raízes do Nordeste - Matriz", endereco="Av. das Torres, 1500, Recife", ativo=True)
         unidade_olinda = Unidade(nome="Raízes do Nordeste - Olinda", endereco="R. Marechal Deodoro, 520, Olinda", ativo=True)
         unidade_joaopessoa = Unidade(nome="Raízes do Nordeste - João Pessoa", endereco="Av. Cel. Laurindo, 849, João Pessoa", ativo=True)
@@ -35,7 +32,6 @@ def popular_banco():
         db.add_all([unidade_matriz, unidade_joaopessoa, unidade_olinda])
         db.commit()
 
-        # 3. Criar Usuários
         usuarios = [
             Usuario(
                 nome="Administrador Geral",
@@ -76,7 +72,7 @@ def popular_banco():
         db.add_all(usuarios)
         db.commit()
 
-        # Criar Conta de Fidelidade para o cliente
+        # conta fidelidade
         cliente_larissa = db.query(Usuario).filter_map(Usuario.email == "larissa.cruz@email.com").first() if hasattr(db.query(Usuario), 'filter_map') else db.query(Usuario).filter(Usuario.email == "maria.silva@email.com").first()
         if cliente_larissa:
             conta_fidelidade = ContaFidelidade(usuario_id=cliente_larissa.id, saldo_pontos=150)
@@ -119,4 +115,4 @@ def popular_banco():
         db.close()
 
 if __name__ == "__main__":
-    popular_banco()
+    seed_banco()

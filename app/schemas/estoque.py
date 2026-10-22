@@ -1,11 +1,11 @@
 from decimal import Decimal
 from pydantic import BaseModel, Field
 
-# --- Schemas UC07: Unidades ---
+# Schemas Unidades
 class UnidadeCreateSchema(BaseModel):
-    nome: str = Field(..., min_length=3, max_length=100, example="Unidade Salvador - Pelourinho")
-    endereco: str = Field(..., example="Rua das Laranjeiras, 10 - Salvador/BA")
-    telefone: str | None = Field(default=None, example="(71) 99999-8888")
+    nome: str = Field(..., min_length=3, max_length=100, example="Unidade Matriz")
+    endereco: str = Field(..., example="Rua Marechal Deodoro, 630, Centro, Curitiba - PR")
+    telefone: str | None = Field(default=None, example="(41) 32240008")
 
 class UnidadeUpdateSchema(BaseModel):
     nome: str | None = Field(default=None, min_length=3, max_length=100)
@@ -21,10 +21,10 @@ class UnidadeResponseSchema(UnidadeCreateSchema):
         from_attributes = True
 
 
-# --- Schemas UC09: Categorias ---
+# Schemas Categorias
 class CategoriaCreateSchema(BaseModel):
-    nome: str = Field(..., min_length=2, max_length=100, example="Tapiocas Doces")
-    descricao: str | None = Field(default=None, example="Tapiocas tradicionais recheadas com doces")
+    nome: str = Field(..., min_length=2, max_length=100, example="Pratos executivos")
+    descricao: str | None = Field(default=None, example="Pratos executivos individuais (válidos somente para almoço)")
 
 class CategoriaResponseSchema(CategoriaCreateSchema):
     id: int
@@ -33,18 +33,18 @@ class CategoriaResponseSchema(CategoriaCreateSchema):
         from_attributes = True
 
 
-# --- Schemas UC08: Produtos ---
+# Schemas Produtos
 class ProdutoCreateSchema(BaseModel):
     categoria_id: int = Field(..., example=1)
-    nome: str = Field(..., min_length=2, max_length=100, example="Tapioca de Carne de Sol")
-    descricao: str | None = Field(default=None, example="Acompanha queijo coalho e manteiga de garrafa")
-    preco_base: Decimal = Field(..., gt=0, example=18.50)
+    nome: str = Field(..., min_length=2, max_length=100, example="Baião de Dois")
+    descricao: str | None = Field(default=None, example="Feijão de corda acompanhado de arroz, queijo coalho e charque.")
+    preco_unitario: Decimal = Field(..., gt=0, example=18.50)
 
 class ProdutoUpdateSchema(BaseModel):
     categoria_id: int | None = Field(default=None)
     nome: str | None = Field(default=None)
     descricao: str | None = Field(default=None)
-    preco_base: Decimal | None = Field(default=None, gt=0)
+    preco_unitario: Decimal | None = Field(default=None, gt=0)
     ativo: bool | None = Field(default=None)
 
 class ProdutoResponseSchema(ProdutoCreateSchema):
@@ -55,9 +55,9 @@ class ProdutoResponseSchema(ProdutoCreateSchema):
         from_attributes = True
 
 
-# --- Schemas UC10: Estoque ---
+# Schemas Estoque
 class AtualizarEstoqueSchema(BaseModel):
-    quantidade: int = Field(..., ge=0, example=50, description="Nova quantidade total em estoque")
+    quantidade: int = Field(..., ge=0, example=50, description="Quantidade total em estoque alterada")
 
 class EstoqueResponseSchema(BaseModel):
     id: int

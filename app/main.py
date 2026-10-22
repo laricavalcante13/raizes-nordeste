@@ -15,14 +15,13 @@ app = FastAPI(
 
 app.include_router(auth.router, prefix="/api/v1")
 app.include_router(usuarios.router, prefix="/api/v1")
+app.include_router(produtos.router, prefix="/api/v1")
 app.include_router(pedidos.router, prefix="/api/v1")
 app.include_router(pagamentos.router, prefix="/api/v1")
 app.include_router(estoque.router, prefix="/api/v1")
-app.include_router(produtos.router, prefix="/api/v1")
 app.include_router(unidades.router, prefix="/api/v1")
 app.include_router(fidelidade.router, prefix="/api/v1")
 
-#mensagens personalizadas de acordo com o código do erro
 STATUS_CODE_MAP = {
     400: ("BAD_REQUEST", "Requisição inválida."),
     401: ("UNAUTHORIZED", "Não autorizado. Token ausente ou inválido."),
@@ -76,7 +75,7 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
     )
 
 
-#tratador genérico para exceções não tratadas - 500
+#tratador genérico para 500
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
     return JSONResponse(

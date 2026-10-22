@@ -1,6 +1,6 @@
 import random
 
-class ServicoPagamentoMock:
+class Pagamento:
     @staticmethod
     def processar_pagamento(pedido_id: int, valor: float, forma_pagamento: str) -> dict:
         se_aprovado = "FALHA" not in forma_pagamento.upper()

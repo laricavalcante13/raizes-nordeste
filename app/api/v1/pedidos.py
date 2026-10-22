@@ -12,16 +12,14 @@ from app.domain.models import (
 from app.domain.enums import StatusPedido, StatusPagamento, PerfilUsuario, CanalPedido
 from app.api.deps import get_current_user, exigir_perfil
 from app.schemas.pedido import (
-    PedidoCreateSchema, PedidoResponseSchema,
-    ItemPedidoCreateSchema, ProcessarPagamentoSchema,
+    PedidoCreateSchema, PedidoResponseSchema, 
+    ProcessarPagamentoSchema,
     PagamentoResultadoSchema,
-    PedidoKDSResponseSchema,
-    ItemKDSResponseSchema,
-    AtualizarStatusKDSResponseSchema,
+    PedidoCozinhaResponseSchema,
+    ItemCozinhaResponseSchema,
+    AtualizarStatusCozinhaResponseSchema,
     RelatorioVendasResponseSchema,
-    VendasPorCanalItemSchema,
-    HistoricoTransacoesResponseSchema,
-    TransacaoAuditSchema,
+    VendasCanalItemSchema,
 )
 
 router = APIRouter(prefix="/pedidos", tags=["Gestão de Pedidos"])
@@ -278,7 +276,7 @@ def cancelar_pedido(
 
 @router.get(
     "/unidades/{unidade_id}/fila-cozinha",
-    response_model=List[PedidoKDSResponseSchema],
+    response_model=List[PedidoCozinhaResponseSchema],
     summary="Consultar pedidos em preparação"
 )
 def visualizar_fila_kds(
@@ -304,7 +302,7 @@ def visualizar_fila_kds(
         for item in pedido.itens:
             produto = db.query(Produto).filter(Produto.id == item.produto_id).first()
             itens_formatados.append(
-                ItemKDSResponseSchema(
+                ItemCozinhaResponseSchema(
                     produto_id=item.produto_id,
                     produto_nome=produto.nome if produto else "Produto Removido",
                     quantidade=item.quantidade
@@ -312,7 +310,7 @@ def visualizar_fila_kds(
             )
 
         resultado.append(
-            PedidoKDSResponseSchema(
+            PedidoCozinhaResponseSchema(
                 id=pedido.id,
                 unidade_id=pedido.unidade_id,
                 canal_venda=pedido.canal_venda,
@@ -328,7 +326,7 @@ def visualizar_fila_kds(
 
 @router.patch(
     "/{pedido_id}/pronto",
-    response_model=AtualizarStatusKDSResponseSchema,
+    response_model=AtualizarStatusCozinhaResponseSchema,
     summary="Atualizar status do pedido para PRONTO"
 )
 def marcar_pedido_pronto(
@@ -351,7 +349,7 @@ def marcar_pedido_pronto(
     pedido.status = StatusPedido.PRONTO
     db.commit()
 
-    return AtualizarStatusKDSResponseSchema(
+    return AtualizarStatusCozinhaResponseSchema(
         pedido_id=pedido.id,
         novo_status=pedido.status,
         mensagem="Pedido finalizado na cozinha e pronto para entrega/retirada!"
@@ -360,7 +358,7 @@ def marcar_pedido_pronto(
 
 @router.patch(
     "/{pedido_id}/entregar",
-    response_model=AtualizarStatusKDSResponseSchema,
+    response_model=AtualizarStatusCozinhaResponseSchema,
     summary="Atualizar status do pedido para ENTREGUE/CONCLUÍDO"
 )
 def marcar_pedido_entregue(
@@ -383,7 +381,7 @@ def marcar_pedido_entregue(
     pedido.status = StatusPedido.CONCLUIDO
     db.commit()
 
-    return AtualizarStatusKDSResponseSchema(
+    return AtualizarStatusCozinhaResponseSchema(
         pedido_id=pedido.id,
         novo_status=pedido.status,
         mensagem="Pedido entregue com sucesso!"
@@ -442,7 +440,7 @@ def consultar_relatorio_vendas_por_canal(
         faturamento_geral += Decimal(str(p.valor_total))
 
     vendas_por_canal = [
-        VendasPorCanalItemSchema(
+        VendasCanalItemSchema(
             canal_venda=canal,
             quantidade_pedidos=dados["qtd"],
             faturamento_total=dados["total"]

@@ -6,10 +6,10 @@ from app.infrastructure.database import get_db
 from app.domain.models import Usuario, LogAuditoria
 from app.domain.enums import PerfilUsuario
 from app.schemas.usuario import (
-    ColaboradorCreateSchema,
     UsuarioUpdateSchema,
     UsuarioResponseSchema,
-    ConsentimentoResponseSchema,
+    LGPDResponseSchema,
+    FuncionarioCreateSchema,
     ClienteCreateSchema
 )
 
@@ -63,7 +63,7 @@ def registrar_cliente(payload: ClienteCreateSchema, db: Session = Depends(get_db
     summary="Cadastrar novo funcionário"
 )
 def criar_colaborador(
-    payload: ColaboradorCreateSchema,
+    payload: FuncionarioCreateSchema,
     db: Session = Depends(get_db),
     usuario_atual: Usuario = Depends(exigir_perfil([PerfilUsuario.GERENTE, PerfilUsuario.ADMIN]))
 ):
@@ -180,7 +180,7 @@ def atualizar_usuario(
 
 @router.get(
     "/{usuario_id}/consentimento-lgpd",
-    response_model=ConsentimentoResponseSchema,
+    response_model=LGPDResponseSchema,
     summary="Consultar status do consentimento LGPD"
 )
 def consultar_consentimento_lgpd(
@@ -198,7 +198,7 @@ def consultar_consentimento_lgpd(
     if not usuario:
         raise HTTPException(status_code=404, detail="Usuário não encontrado.")
 
-    return ConsentimentoResponseSchema(
+    return LGPDResponseSchema(
         usuario_id=usuario.id,
         consentimento_lgpd=usuario.consentimento_lgpd,
         mensagem="Consentimento ativo." if usuario.consentimento_lgpd else "Consentimento revogado pelo usuário."
@@ -207,7 +207,7 @@ def consultar_consentimento_lgpd(
 
 @router.patch(
     "/{usuario_id}/revogar-consentimento-lgpd",
-    response_model=ConsentimentoResponseSchema,
+    response_model=LGPDResponseSchema,
     summary="Revogar consentimento LGPD"
 )
 def revogar_consentimento_lgpd(
@@ -228,7 +228,7 @@ def revogar_consentimento_lgpd(
     usuario.consentimento_lgpd = False
     db.commit()
 
-    return ConsentimentoResponseSchema(
+    return LGPDResponseSchema(
         usuario_id=usuario.id,
         consentimento_lgpd=False,
         mensagem="Consentimento revogado com sucesso. Seus dados não serão utilizados para novas operações."

@@ -7,7 +7,6 @@ from app.api.deps import get_current_user
 from app.schemas.usuario import (
     SaldoFidelidadeResponseSchema,
     ResgatarPontosSchema,
-    TransacaoFidelidadeSchema,
 )
 
 router = APIRouter(prefix="/fidelidade", tags=["Programa de Fidelidade"])
@@ -70,7 +69,6 @@ def resgatar_pontos_fidelidade(
             detail=f"Saldo insuficiente. Você possui {conta.saldo_pontos} pontos."
         )
 
-    #subtrai pontos
     conta.saldo_pontos -= payload.pontos_para_resgatar
 
     transacao = HistoricoFidelidade(

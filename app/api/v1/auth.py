@@ -3,8 +3,6 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from app.infrastructure.database import get_db
 from app.domain.models import Usuario
-from app.domain.enums import PerfilUsuario
-from app.schemas.usuario import ClienteCreateSchema, UsuarioResponseSchema
 from app.core.security import gerar_hash_senha, verificar_senha, criar_token_acesso
 
 router = APIRouter(prefix="/auth", tags=["Autenticação de Usuários"])
