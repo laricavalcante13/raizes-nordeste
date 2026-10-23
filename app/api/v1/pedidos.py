@@ -120,7 +120,7 @@ def criar_pedido(
             pedido_id=novo_pedido.id,
             produto_id=produto.id,
             quantidade=quantidade,
-            preco_unitario=produto.preco,
+            preco=produto.preco,
             subtotal=subtotal_item
         ))
 

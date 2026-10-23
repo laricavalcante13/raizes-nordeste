@@ -1,6 +1,6 @@
-from sqlalchemy import Column, Integer, String, Float, Enum, ForeignKey, Boolean, DateTime, Numeric, timezone
+from sqlalchemy import Column, Integer, String, Float, Enum, ForeignKey, Boolean, DateTime, Numeric
 from sqlalchemy.orm import relationship
-from datetime import datetime
+from datetime import datetime, timezone
 from app.infrastructure.database import Base
 from app.domain.enums import CanalPedido, StatusPedido, PerfilUsuario, StatusPagamento
 
@@ -43,7 +43,7 @@ class ItemPedido(Base):
     pedido_id = Column(Integer, ForeignKey("pedidos.id"), nullable=False)
     produto_id = Column(Integer, ForeignKey("produtos.id"), nullable=False)
     quantidade = Column(Integer, nullable=False)
-    preco_unitario = Column(Numeric(10, 2), nullable=False)
+    preco = Column(Numeric(10, 2), nullable=False)
     subtotal = Column(Numeric(10, 2), nullable=False)
 
     pedido = relationship("Pedido", back_populates="itens")

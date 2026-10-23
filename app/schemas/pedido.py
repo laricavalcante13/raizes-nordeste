@@ -12,7 +12,7 @@ class ItemPedidoResponseSchema(BaseModel):
     id: int
     produto_id: int
     quantidade: int
-    preco_unitario: Decimal
+    preco: Decimal
     subtotal: Decimal
 
     class Config:
