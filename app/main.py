@@ -88,5 +88,3 @@ async def global_exception_handler(request: Request, exc: Exception):
             "path": request.url.path
         }
     )
-
-Base.metadata.create_all(bind=engine)
