@@ -161,51 +161,6 @@ def obter_pedido(
     return pedido
 
 
-@router.post("/{pedido_id}/pagamento-mock", response_model=PagamentoResultadoSchema, summary="Processar Pagamento e creditar pontos do programa de fidelidade")
-def processar_pagamento_mock(
-    pedido_id: int,
-    payload: ProcessarPagamentoSchema,
-    db: Session = Depends(get_db),
-    usuario_atual: Usuario = Depends(get_current_user)
-):
-    pedido = db.query(Pedido).filter(Pedido.id == pedido_id).first()
-    if not pedido:
-        raise HTTPException(status_code=404, detail="Pedido não encontrado.")
-
-    if pedido.status == StatusPedido.CANCELADO:
-        raise HTTPException(status_code=400, detail="Não é possível pagar um pedido cancelado.")
-
-    if payload.simular_sucesso:
-        pedido.status_pagamento = StatusPagamento.APROVADO
-        pedido.status = StatusPedido.EM_PREPARACAO
-
-        # acúmulo de pontos fidelidade
-        pontos_ganhos = int(pedido.valor_total)
-        if pontos_ganhos > 0:
-            conta = obter_ou_criar_conta_fidelidade(pedido.cliente_id, db)
-            conta.saldo_pontos += pontos_ganhos
-            db.add(HistoricoFidelidade(
-                conta_id=conta.id,
-                quantidade_pontos=pontos_ganhos,
-                tipo_operacao="ACUMULO_PEDIDO",
-                descricao=f"Pontos acumulados pelo Pedido #{pedido.id}"
-            ))
-
-        mensagem = f"Pagamento APROVADO! Você ganhou +{pontos_ganhos} pontos de fidelidade! Pedido enviado para a cozinha."
-    else:
-        pedido.status_pagamento = StatusPagamento.RECUSADO
-        mensagem = f"Pagamento RECUSADO via {payload.forma_pagamento}."
-
-    db.commit()
-
-    return PagamentoResultadoSchema(
-        pedido_id=pedido.id,
-        status_pagamento=pedido.status_pagamento,
-        status_pedido=pedido.status,
-        mensagem=mensagem
-    )
-
-
 @router.post("/{pedido_id}/cancelar", response_model=PedidoResponseSchema, summary="Cancelar Pedido")
 def cancelar_pedido(
     pedido_id: int,

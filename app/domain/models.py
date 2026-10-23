@@ -1,8 +1,8 @@
-from sqlalchemy import Column, Integer, String, Float, Enum, ForeignKey, Boolean, DateTime
+from sqlalchemy import Column, Integer, String, Float, Enum, ForeignKey, Boolean, DateTime, Numeric, timezone
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from app.infrastructure.database import Base
-from app.domain.enums import CanalPedido, StatusPedido, PerfilUsuario
+from app.domain.enums import CanalPedido, StatusPedido, PerfilUsuario, StatusPagamento
 
 class Usuario(Base):
     __tablename__ = "usuarios"
