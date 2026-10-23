@@ -8,12 +8,12 @@ from app.domain.enums import PerfilUsuario
 from app.api.deps import exigir_perfil
 from app.schemas.estoque import (
     ProdutoCreateSchema, ProdutoUpdateSchema, ProdutoResponseSchema,
-    CategoriaCreateSchema, CategoriaResponseSchema
+    CategoriaCreateSchema, CategoriaResponseSchema, 
 )
 from app.schemas.produto import (
     ProdutoCardapioSchema,
     CardapioUnidadeResponseSchema,
-)
+)                                   
 
 router = APIRouter(prefix="/produtos", tags=["Produtos"])
 
@@ -57,9 +57,6 @@ def criar_produto(
     db.refresh(produto)
     return produto
 
-@router.get("", response_model=List[ProdutoResponseSchema], summary="Listar produtos ativos no sistema")
-def listar_produtos(
-    page: int = Query(default=1, ge=1, description="Número da página"),
     limit: int = Query(default=10, ge=1, le=100, description="Itens por página"),
     db: Session = Depends(get_db)
 ):
@@ -85,21 +82,24 @@ def editar_produto(
     db.refresh(produto)
     return produto
 
-@router.get(
-    "/cardapio/unidades/{unidade_id}",
-    response_model=CardapioUnidadeResponseSchema,
-    summary="Consultar Cardápio",
-)
+from fastapi import APIRouter, Depends, Query, HTTPException
+from sqlalchemy.orm import Session
+from typing import Optional
+
+router = APIRouter()
+
+@router.get("/cardapio/unidades/{unidade_id}", response_model=CardapioUnidadeResponseSchema, summary="Consultar Produtos/Cardápio por unidade")
 def consultar_cardapio_unidade(
     unidade_id: int,
-    categoria_id: int
-    | None = Query(
+    categoria_id: int | None = Query(
         default=None,
         description="Filtrar produtos por ID da Categoria",
     ),
+    page: int = Query(1, ge=1, description="Número da página (iniciando em 1)"),
+    limit: int = Query(10, ge=1, le=100, description="Quantidade de itens por página"),
     apenas_disponiveis: bool = Query(
         default=True,
-        description="Exibir apenas produtos com estoque positivo",
+        description="Exibe apenas produtos com estoque positivo",
     ),
     db: Session = Depends(get_db),
 ):
@@ -134,7 +134,14 @@ def consultar_cardapio_unidade(
     if apenas_disponiveis:
         query = query.filter(EstoqueUnidade.quantidade > 0)
 
-    resultados = query.all()
+    # Cálculo da paginação
+    skip = (page - 1) * limit
+    
+    # Pegando o total antes de paginar (opcional, mas bom para a resposta)
+    total_itens = query.count()
+
+    # Aplicando o offset e limit na query do banco
+    resultados = query.offset(skip).limit(limit).all()
 
     produtos_list = []
     for item in resultados:
@@ -154,6 +161,6 @@ def consultar_cardapio_unidade(
     return CardapioUnidadeResponseSchema(
         unidade_id=unidade.id,
         unidade_nome=unidade.nome,
-        total_itens=len(produtos_list),
+        total_itens=total_itens,
         produtos=produtos_list,
     )

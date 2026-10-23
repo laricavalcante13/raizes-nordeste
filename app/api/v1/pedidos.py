@@ -13,8 +13,6 @@ from app.domain.enums import StatusPedido, StatusPagamento, PerfilUsuario, Canal
 from app.api.deps import get_current_user, exigir_perfil
 from app.schemas.pedido import (
     PedidoCreateSchema, PedidoResponseSchema, 
-    ProcessarPagamentoSchema,
-    PagamentoResultadoSchema,
     PedidoCozinhaResponseSchema,
     ItemCozinhaResponseSchema,
     AtualizarStatusCozinhaResponseSchema,
