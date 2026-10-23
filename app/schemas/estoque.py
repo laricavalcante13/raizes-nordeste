@@ -38,13 +38,13 @@ class ProdutoCreateSchema(BaseModel):
     categoria_id: int = Field(..., example=1)
     nome: str = Field(..., min_length=2, max_length=100, example="Baião de Dois")
     descricao: str | None = Field(default=None, example="Feijão de corda acompanhado de arroz, queijo coalho e charque.")
-    preco_unitario: Decimal = Field(..., gt=0, example=18.50)
+    preco: Decimal = Field(..., gt=0, example=18.50)
 
 class ProdutoUpdateSchema(BaseModel):
     categoria_id: int | None = Field(default=None)
     nome: str | None = Field(default=None)
     descricao: str | None = Field(default=None)
-    preco_unitario: Decimal | None = Field(default=None, gt=0)
+    preco: Decimal | None = Field(default=None, gt=0)
     ativo: bool | None = Field(default=None)
 
 class ProdutoResponseSchema(ProdutoCreateSchema):
