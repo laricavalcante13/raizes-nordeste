@@ -16,11 +16,6 @@ class Usuario(Base):
     consentimento_lgpd = Column(Boolean, default=True)
     criado_em = Column(DateTime, default=datetime.utcnow)
 
-from sqlalchemy import Column, Integer, String, Numeric, Enum, ForeignKey, DateTime
-from sqlalchemy.orm import relationship
-from datetime import datetime, timezone
-from app.domain.enums import CanalPedido, StatusPedido, StatusPagamento
-
 class Pedido(Base):
     __tablename__ = "pedidos"
 
