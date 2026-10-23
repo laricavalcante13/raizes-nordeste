@@ -57,12 +57,11 @@ def criar_produto(
     db.refresh(produto)
     return produto
 
-    limit: int = Query(default=10, ge=1, le=100, description="Itens por página"),
-    db: Session = Depends(get_db)
-):
-    offset = (page - 1) * limit
-    return db.query(Produto).filter(Produto.ativo == True).offset(offset).limit(limit).all()
+from fastapi import APIRouter, Depends, Query
+from sqlalchemy.orm import Session
+from typing import Optional
 
+router = APIRouter()
 
 @router.patch("/{produto_id}", response_model=ProdutoResponseSchema, summary="Editar produto")
 def editar_produto(
