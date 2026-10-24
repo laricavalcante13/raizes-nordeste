@@ -143,6 +143,78 @@ def listar_pedidos(
     return query.order_by(Pedido.criado_em.desc()).offset(offset).limit(limit).all()
 
 
+@router.get(
+    "/vendas-por-canal",
+    response_model=RelatorioVendasResponseSchema,
+    summary="Relatório de pedidos por canal de venda"
+)
+def consultar_relatorio_vendas_por_canal(
+    unidade_id: int | None = Query(default=None, description="Filtrar por ID da Unidade/Filial"),
+    data_inicio: str | None = Query(default=None, description="Data inicial no formato YYYY-MM-DD"),
+    data_fim: str | None = Query(default=None, description="Data final no formato YYYY-MM-DD"),
+    db: Session = Depends(get_db),
+    _: Usuario = Depends(exigir_perfil([PerfilUsuario.GERENTE, PerfilUsuario.ADMIN]))
+):
+    query = db.query(Pedido).filter(
+        Pedido.status_pagamento == StatusPagamento.APROVADO,
+        Pedido.status != StatusPedido.CANCELADO
+    )
+
+    if unidade_id is not None:
+        query = query.filter(Pedido.unidade_id == unidade_id)
+
+    if data_inicio:
+        try:
+            dt_inicio = datetime.strptime(data_inicio, "%Y-%m-%d")
+            query = query.filter(Pedido.criado_em >= dt_inicio)
+        except ValueError:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Formato de data_inicio inválido. Use YYYY-MM-DD."
+            )
+
+    if data_fim:
+        try:
+            dt_fim = datetime.strptime(f"{data_fim} 23:59:59", "%Y-%m-%d %H:%M:%S")
+            query = query.filter(Pedido.criado_em <= dt_fim)
+        except ValueError:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Formato de data_fim inválido. Use YYYY-MM-DD."
+            )
+
+    pedidos = query.all()
+
+    agregado = {canal: {"qtd": 0, "total": Decimal("0.00")} for canal in CanalPedido}
+    faturamento_geral = Decimal("0.00")
+    total_pedidos = len(pedidos)
+
+    for p in pedidos:
+        agregado[p.canal_venda]["qtd"] += 1
+        agregado[p.canal_venda]["total"] += Decimal(str(p.valor_total))
+        faturamento_geral += Decimal(str(p.valor_total))
+
+    vendas_por_canal = [
+        VendasCanalItemSchema(
+            canal_venda=canal,
+            quantidade_pedidos=dados["qtd"],
+            faturamento_total=dados["total"]
+        )
+        for canal, dados in agregado.items()
+    ]
+
+    return RelatorioVendasResponseSchema(
+        unidade_id=unidade_id,
+        data_inicio=data_inicio,
+        data_fim=data_fim,
+        faturamento_geral=faturamento_geral,
+        total_pedidos=total_pedidos,
+        vendas_por_canal=vendas_por_canal
+    )
+
+
+
+
 @router.get("/{pedido_id}", response_model=PedidoResponseSchema, summary="Obter detalhes do pedido")
 def obter_pedido(
     pedido_id: int,
@@ -338,76 +410,6 @@ def marcar_pedido_entregue(
         pedido_id=pedido.id,
         novo_status=pedido.status,
         mensagem="Pedido entregue com sucesso!"
-    )
-
-
-@router.get(
-    "/vendas-por-canal",
-    response_model=RelatorioVendasResponseSchema,
-    summary="Relatório de pedidos por canal de venda"
-)
-def consultar_relatorio_vendas_por_canal(
-    unidade_id: int | None = Query(default=None, description="Filtrar por ID da Unidade/Filial"),
-    data_inicio: str | None = Query(default=None, description="Data inicial no formato YYYY-MM-DD"),
-    data_fim: str | None = Query(default=None, description="Data final no formato YYYY-MM-DD"),
-    db: Session = Depends(get_db),
-    _: Usuario = Depends(exigir_perfil([PerfilUsuario.GERENTE, PerfilUsuario.ADMIN]))
-):
-    query = db.query(Pedido).filter(
-        Pedido.status_pagamento == StatusPagamento.APROVADO,
-        Pedido.status != StatusPedido.CANCELADO
-    )
-
-    if unidade_id is not None:
-        query = query.filter(Pedido.unidade_id == unidade_id)
-
-    if data_inicio:
-        try:
-            dt_inicio = datetime.strptime(data_inicio, "%Y-%m-%d")
-            query = query.filter(Pedido.criado_em >= dt_inicio)
-        except ValueError:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Formato de data_inicio inválido. Use YYYY-MM-DD."
-            )
-
-    if data_fim:
-        try:
-            dt_fim = datetime.strptime(f"{data_fim} 23:59:59", "%Y-%m-%d %H:%M:%S")
-            query = query.filter(Pedido.criado_em <= dt_fim)
-        except ValueError:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Formato de data_fim inválido. Use YYYY-MM-DD."
-            )
-
-    pedidos = query.all()
-
-    agregado = {canal: {"qtd": 0, "total": Decimal("0.00")} for canal in CanalPedido}
-    faturamento_geral = Decimal("0.00")
-    total_pedidos = len(pedidos)
-
-    for p in pedidos:
-        agregado[p.canal_venda]["qtd"] += 1
-        agregado[p.canal_venda]["total"] += Decimal(str(p.valor_total))
-        faturamento_geral += Decimal(str(p.valor_total))
-
-    vendas_por_canal = [
-        VendasCanalItemSchema(
-            canal_venda=canal,
-            quantidade_pedidos=dados["qtd"],
-            faturamento_total=dados["total"]
-        )
-        for canal, dados in agregado.items()
-    ]
-
-    return RelatorioVendasResponseSchema(
-        unidade_id=unidade_id,
-        data_inicio=data_inicio,
-        data_fim=data_fim,
-        faturamento_geral=faturamento_geral,
-        total_pedidos=total_pedidos,
-        vendas_por_canal=vendas_por_canal
     )
 
 
