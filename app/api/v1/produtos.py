@@ -17,7 +17,7 @@ from app.schemas.produto import (
 
 router = APIRouter(prefix="/produtos", tags=["Produtos"])
 
-@router.post("/categorias", response_model=CategoriaResponseSchema, status_code=status.HTTP_201_CREATED, summary="Cadastrar categoria de produtos para o cardápio")
+@router.post("/categorias", response_model=CategoriaResponseSchema, status_code=status.HTTP_201_CREATED, summary="Cadastrar categoria de produtos")
 def criar_categoria(
     payload: CategoriaCreateSchema,
     db: Session = Depends(get_db),
@@ -94,8 +94,8 @@ def consultar_cardapio_unidade(
         default=None,
         description="Filtrar produtos por ID da Categoria",
     ),
-    page: int = Query(1, ge=1, description="Número da página (iniciando em 1)"),
-    limit: int = Query(10, ge=1, le=100, description="Quantidade de itens por página"),
+    page: int = Query(1, ge=1, description="Número da página"),
+    limit: int = Query(10, ge=1, le=100, description="Itens por página"),
     apenas_disponiveis: bool = Query(
         default=True,
         description="Exibe apenas produtos com estoque positivo",
@@ -133,14 +133,12 @@ def consultar_cardapio_unidade(
     if apenas_disponiveis:
         query = query.filter(EstoqueUnidade.quantidade > 0)
 
-    # Cálculo da paginação
-    skip = (page - 1) * limit
+    offset = (page - 1) * limit
     
-    # Pegando o total antes de paginar (opcional, mas bom para a resposta)
     total_itens = query.count()
 
     # Aplicando o offset e limit na query do banco
-    resultados = query.offset(skip).limit(limit).all()
+    resultados = query.offset(offset).limit(limit).all()
 
     produtos_list = []
     for item in resultados:
