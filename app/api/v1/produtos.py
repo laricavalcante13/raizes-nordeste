@@ -137,7 +137,6 @@ def consultar_cardapio_unidade(
     
     total_itens = query.count()
 
-    # Aplicando o offset e limit na query do banco
     resultados = query.offset(offset).limit(limit).all()
 
     produtos_list = []
