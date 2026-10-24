@@ -57,12 +57,6 @@ def criar_produto(
     db.refresh(produto)
     return produto
 
-from fastapi import APIRouter, Depends, Query
-from sqlalchemy.orm import Session
-from typing import Optional
-
-router = APIRouter()
-
 @router.patch("/{produto_id}", response_model=ProdutoResponseSchema, summary="Editar produto")
 def editar_produto(
     produto_id: int,
@@ -80,12 +74,6 @@ def editar_produto(
     db.commit()
     db.refresh(produto)
     return produto
-
-from fastapi import APIRouter, Depends, Query, HTTPException
-from sqlalchemy.orm import Session
-from typing import Optional
-
-router = APIRouter()
 
 @router.get("/cardapio/unidades/{unidade_id}", response_model=CardapioUnidadeResponseSchema, summary="Consultar Produtos/Cardápio por unidade")
 def consultar_cardapio_unidade(

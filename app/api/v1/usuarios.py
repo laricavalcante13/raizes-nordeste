@@ -153,7 +153,6 @@ def atualizar_usuario(
             detail="Usuário não encontrado."
         )
 
-    # Atualizações dos campos
     if payload.nome:
         usuario.nome = payload.nome
 
@@ -236,11 +235,11 @@ def revogar_consentimento_lgpd(
 
 
 @router.post(
-    "/{usuario_id}/solicitar-exclusao-lgpd",
+    "/{usuario_id}/anonimizar-dados-lgpd",
     status_code=status.HTTP_200_OK,
     summary="Anonimização de dados pessoais conforme LGPD"
 )
-def solicitar_exclusao_dados_lgpd(
+def anonimizacao_dados_lgpd(
     usuario_id: int,
     db: Session = Depends(get_db),
     usuario_atual: Usuario = Depends(get_current_user)
