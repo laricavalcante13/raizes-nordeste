@@ -22,6 +22,23 @@ API RESTful desenvolvida em FastAPI para gerenciamento e processamento de pedido
 * **Auditoria**: Logs automáticos de ações críticas no sistema.
 * **Documentação Automática**: Swagger UI (`/docs`) integrado nativamente.
 
+
+## Estrutura do projeto
+
+- **raizes-nordeste/**
+  - **app/**
+    - `api/v1/` - Rotas e endpoints da API
+    - `core/` - Configurações globais e segurança
+    - `infrastructure/` - Simulação de Gateway externo e serviços
+    - `models/` - Modelos do SQLAlchemy (Banco de dados)
+    - `schemas/` - Schemas do Pydantic (Validação de Payload)
+    - `main.py` - Ponto de entrada da aplicação FastAPI
+    - `postman/` - Coleção de testes realizados no Postman
+  - `venv/` - Ambiente virtual Python
+  - `requirements.txt` - Dependências do projeto
+  - `README.md` - Documentação principal
+
+
 ## Como Executar o Projeto
 
 ### 1. Clonar o repositório
@@ -51,20 +68,3 @@ uvicorn app.main:app --reload
 A API estará acessível em: http://localhost:8000
 A documentação do Swagger UI poderá ser acessada em: http://localhost:8000/docs
 
-
-
-
-## Estrutura do projeto
-
-- **raizes-nordeste/**
-  - **app/**
-    - `api/v1/` - Rotas e endpoints da API
-    - `core/` - Configurações globais e segurança
-    - `infrastructure/` - Simulação de Gateway externo e serviços
-    - `models/` - Modelos do SQLAlchemy (Banco de dados)
-    - `schemas/` - Schemas do Pydantic (Validação de Payload)
-    - `main.py` - Ponto de entrada da aplicação FastAPI
-    - `postman/` - Coleção de testes realizados no Postman
-  - `venv/` - Ambiente virtual Python
-  - `requirements.txt` - Dependências do projeto
-  - `README.md` - Documentação principal
