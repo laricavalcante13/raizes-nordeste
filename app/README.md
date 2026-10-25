@@ -64,6 +64,7 @@ A documentação do Swagger UI poderá ser acessada em: http://localhost:8000/do
     - `models/` - Modelos do SQLAlchemy (Banco de dados)
     - `schemas/` - Schemas do Pydantic (Validação de Payload)
     - `main.py` - Ponto de entrada da aplicação FastAPI
+    - `postman/` - Coleção de testes realizados no Postman
   - `venv/` - Ambiente virtual Python
   - `requirements.txt` - Dependências do projeto
   - `README.md` - Documentação principal
