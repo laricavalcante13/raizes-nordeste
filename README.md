@@ -55,7 +55,7 @@ source venv/bin/activate (Linux)
 ```
 ### 3. Instalar dependências
 ```bash
-pip install -r requirements.txt
+pip install -r app/requirements.txt
 ```
 ### 4. Popular o banco de dados
 ```bash
