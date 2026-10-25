@@ -40,17 +40,31 @@ class PedidoResponseSchema(BaseModel):
     class Config:
         from_attributes = True
 
-# Schema Pagamento (mock)
+# Schema Pagamento
 class ProcessarPagamentoSchema(BaseModel):
-    forma_pagamento: str = Field(..., example="PIX", description="PIX, CARTAO_CREDITO, CARTAO_DEBITO")
-    simular_sucesso: bool = Field(default=True, description="Simulação de pagamento")
-
-class PagamentoResultadoSchema(BaseModel):
     pedido_id: int
+    forma_pagamento: str = Field(
+      ...,
+      example="CARTAO_CREDITO",
+      description="PIX, CARTAO_CREDITO, CARTAO_DEBITO",
+  )
+    info_pagamento: dict = Field(
+      example={"numero_cartao": "0000-0000-0000-0000"},
+      description=(
+          "Informações de pagamento: {'numero_cartao': '...'} ou"
+          " {'chave_pix': '...'}"
+      ),
+  )
+class PagamentoResultadoSchema(BaseModel):
+    transacao_id: str
+    pedido_id: int
+    forma_pagamento: str
     status_pagamento: StatusPagamento
     status_pedido: StatusPedido
     mensagem: str
 
+
+#producao pedidos - cozinha
 class ItemCozinhaResponseSchema(BaseModel):
     produto_id: int
     produto_nome: str
@@ -71,13 +85,12 @@ class PedidoCozinhaResponseSchema(BaseModel):
     class Config:
         from_attributes = True
 
-
 class AtualizarStatusCozinhaResponseSchema(BaseModel):
     pedido_id: int
     novo_status: StatusPedido
     mensagem: str
 
-# --- UC21: Relatório de Vendas por Canal ---
+# Relatório de Vendas por Canal
 class VendasCanalItemSchema(BaseModel):
     canal_venda: CanalPedido
     quantidade_pedidos: int

@@ -1,6 +1,8 @@
+from typing import Optional
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from app.infrastructure.database import get_db
 from app.domain.models import Pedido, LogAuditoria
 from app.domain.enums import StatusPedido
@@ -12,6 +14,14 @@ router = APIRouter(prefix="/pagamentos", tags=["Pagamentos"])
 class ProcessarPagamentoSchema(BaseModel):
     pedido_id: int
     forma_pagamento: str
+    numero_cartao: Optional[str] = Field(
+      default=None,
+      example="0000-0000-0000-0000",
+  )
+    chave_pix: Optional[str] = Field(
+      default=None,
+      example="chavepix@pix.com",
+  )
 
 @router.post(
         "/processar",
@@ -36,11 +46,12 @@ def processar_pagamento(
     #executa pagamento externo
     result_pgto = Pagamento.processar_pagamento(
         pedido_id=pedido.id, 
-        valor=pedido.valor_total, 
-        forma_pagamento=payload.forma_pagamento
+        forma_pagamento=payload.forma_pagamento,
+        numero_cartao=payload.numero_cartao,
+        chave_pix=payload.chave_pix
     )
 
-    # atualiza o status do pedido com base na resposta do gateway de pagamento
+    # atualiza o status do pedido com base na resposta do gateway
     if result_pgto["status"] == "APROVADO":
         pedido.status = StatusPedido.EM_PREPARACAO
     else:
