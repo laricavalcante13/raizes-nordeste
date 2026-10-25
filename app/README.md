@@ -43,7 +43,7 @@ API RESTful desenvolvida em FastAPI para gerenciamento e processamento de pedido
 
 ### 1. Clonar o repositório
 ```bash
-git clone [https://github.com/laricavalcante13/raizes-nordeste.git](https://github.com/seu-usuario/raizes-nordeste.git)
+git clone [https://github.com/laricavalcante13/raizes-nordeste.git](https://github.com/laricavalcante13/raizes-nordeste.git)
 cd raizes-nordeste
 ```
 ### 2. Criar e ativar o ambiente
