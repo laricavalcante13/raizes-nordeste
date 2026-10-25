@@ -57,7 +57,6 @@ A documentação do Swagger UI poderá ser acessada em: http://localhost:8000/do
 ## Estrutura do projeto
 
 raizes-nordeste/
-│
 ├── app/
 │   ├── api/v1/          # Rotas e endpoints
 │   ├── core/            # Configurações globais e segurança
@@ -65,9 +64,7 @@ raizes-nordeste/
 │   ├── models/          # Modelos do SQLAlchemy (Banco de dados)
 │   ├── schemas/         # Schemas do Pydantic (Validação de Payload)
 │   └── main.py          # Ponto de entrada da aplicação FastAPI
-│
 ├── venv/                # Ambiente virtual Python
 ├── requirements.txt     # Dependências do projeto
 └── README.md            # Documentação principal
-
 
