@@ -1,4 +1,4 @@
-from http.client import HTTPException
+from fastapi import HTTPException
 import random
 
 class Pagamento:
@@ -22,9 +22,9 @@ class Pagamento:
     if "CARTAO" in forma and (
         numero_cartao == "0000-0000-0000-0000" or "ERRO" in (numero_cartao or "")
     ):
-      raise HTTPException(
-          status_code=400, detail="Transação não autorizada."
-      )
+        raise HTTPException(
+            status_code=400, detail="Transação não autorizada."
+        )
 
     # regra de recusa para PIX
     if forma == "PIX" and (
