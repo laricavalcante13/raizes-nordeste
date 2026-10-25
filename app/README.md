@@ -40,12 +40,19 @@ source venv/bin/activate (Linux)
 ```bash
 pip install -r requirements.txt
 ```
-### 4. Executar a aplicação
+### 4. Popular o banco de dados
+```bash
+python -m app.seed
+```
+### 5. Executar a aplicação
 ```bash
 uvicorn app.main:app --reload
 ```
 A API estará acessível em: http://localhost:8000
 A documentação do Swagger UI poderá ser acessada em: http://localhost:8000/docs
+
+
+
 
 ## Estrutura do projeto
 
