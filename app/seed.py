@@ -4,7 +4,7 @@ import os
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from app.infrastructure.database import SessionLocal, engine, Base
-from app.domain.models import Usuario, Unidade, Categoria, Produto, EstoqueUnidade, ContaFidelidade
+from app.domain.models import Usuario, Unidade, Categoria, Produto, EstoqueUnidade, ContaFidelidade, Pedido, ItemPedido
 from app.domain.enums import PerfilUsuario
 from passlib.context import CryptContext
 
@@ -25,6 +25,7 @@ def seed_banco():
 
         print("Iniciando criação de dados no banco...")
 
+        # unidades
         unidade_matriz = Unidade(nome="Raízes do Nordeste - Matriz", endereco="Av. das Torres, 1500, Recife", ativo=True)
         unidade_olinda = Unidade(nome="Raízes do Nordeste - Olinda", endereco="R. Marechal Deodoro, 520, Olinda", ativo=True)
         unidade_joaopessoa = Unidade(nome="Raízes do Nordeste - João Pessoa", endereco="Av. Cel. Laurindo, 849, João Pessoa", ativo=True)
@@ -32,6 +33,7 @@ def seed_banco():
         db.add_all([unidade_matriz, unidade_joaopessoa, unidade_olinda])
         db.commit()
 
+        # usuarios
         usuarios = [
             Usuario(
                 nome="Administrador Geral",
@@ -73,20 +75,20 @@ def seed_banco():
         db.commit()
 
         # conta fidelidade
-        cliente_larissa = db.query(Usuario).filter_map(Usuario.email == "larissa.cruz@email.com").first() if hasattr(db.query(Usuario), 'filter_map') else db.query(Usuario).filter(Usuario.email == "maria.silva@email.com").first()
+        cliente_larissa = db.query(Usuario).filter_map(Usuario.email == "larissa.cruz@email.com").first() if hasattr(db.query(Usuario), 'filter_map') else db.query(Usuario).filter(Usuario.email == "larissa.cruz@email.com").first()
         if cliente_larissa:
             conta_fidelidade = ContaFidelidade(usuario_id=cliente_larissa.id, saldo_pontos=150)
             db.add(conta_fidelidade)
             db.commit()
 
-        # 4. Categorias de produtos
+        # Categorias de produtos
         cat_pratos = Categoria(nome="Pratos Principais", descricao="Pratos principais e menu executivo")
         cat_bebidas = Categoria(nome="Bebidas", descricao="Sucos naturais, refrigerantes e drinks")
         cat_sobremesas = Categoria(nome="Sobremesas", descricao="Sobremesas e sorvetes")
         db.add_all([cat_pratos, cat_bebidas, cat_sobremesas])
         db.commit()
 
-        # 5. Criar Produtos
+        # Criar Produtos
         prod1 = Produto(categoria_id=cat_pratos.id, nome="Carne de Sol com Macaxeira", descricao="Servido com manteiga de garrafa e queijo coalho assado", preco=45.90, ativo=True)
         prod2 = Produto(categoria_id=cat_pratos.id, nome="Baião de Dois (para 2 pessoas)", descricao="Arroz, feijão de corda, carne seca, queijo coalho e bacon", preco=89.90, ativo=True)
         prod3 = Produto(categoria_id=cat_bebidas.id, nome="Suco de Caju Jarra 1L", descricao="Suco da fruta natural", preco=19.50, ativo=True)
@@ -94,7 +96,7 @@ def seed_banco():
         db.add_all([prod1, prod2, prod3, prod4])
         db.commit()
 
-        # 6. Criar Estoque por Unidade
+        # Criar Estoque por Unidade
         estoques = [
             EstoqueUnidade(unidade_id=unidade_matriz.id, produto_id=prod1.id, quantidade=50),
             EstoqueUnidade(unidade_id=unidade_matriz.id, produto_id=prod2.id, quantidade=40),
@@ -103,6 +105,23 @@ def seed_banco():
             EstoqueUnidade(unidade_id=unidade_olinda.id, produto_id=prod1.id, quantidade=25),
             EstoqueUnidade(unidade_id=unidade_joaopessoa.id, produto_id=prod3.id, quantidade=60),
         ]
+
+        # pedido teste
+        pedidos = [
+            Pedido(
+                cliente_id=cliente_larissa.id,
+                unidade_id=unidade_matriz.id,
+                canal_venda="APP",
+                status="AGUARDANDO_PAGAMENTO",
+                status_pagamento="AGUARDANDO",
+                valor_total=89.90,
+                observacao="Sem cebola",
+                itens=[
+                    ItemPedido(produto_id=prod2.id, quantidade=1, preco=89.90, subtotal=89.90)
+                ]
+            )
+        ]
+        
         db.add_all(estoques)
         db.commit()
 
