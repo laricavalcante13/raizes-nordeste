@@ -60,7 +60,7 @@ raizes-nordeste/
 ├── app/
 │   ├── api/v1/          # Rotas e endpoints
 │   ├── core/            # Configurações globais e segurança
-│   ├── infrastructure/  # Simulação de Gateway externo e serviços de infraestrutura
+│   ├── infrastructure/  # Simulação de Gateway externo e serviços
 │   ├── models/          # Modelos do SQLAlchemy (Banco de dados)
 │   ├── schemas/         # Schemas do Pydantic (Validação de Payload)
 │   └── main.py          # Ponto de entrada da aplicação FastAPI
